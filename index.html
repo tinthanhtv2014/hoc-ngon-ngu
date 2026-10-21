@@ -266,9 +266,10 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
 .wr-full #wrWordBox > div:first-child > span:first-child{font-size:30px!important}
 .wr-full .wr-chips{margin:6px 0 0}
 .wr-full .wr-chip{font-size:34px;min-width:58px;min-height:64px}
-.wr-full .wr-sg{margin:8px 0 0;font-size:15.5px;padding:8px 14px}
 /* the page fills the free height: current row on top, upcoming rows below it like a real notebook page */
-.wr-full .wr-page{flex:1 1 0!important;min-height:0;overflow:hidden;margin-top:8px;padding:8px 12px 10px 34px}
+.wr-full .wr-page{flex:1 1 0!important;min-height:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin-top:8px;padding:8px 12px 10px 34px}
+.wr-full .wr-item.after .wr-line,.wr-full .wr-item.after .wr-canvas{touch-action:pan-x pan-y;cursor:default}
+.wr-full .wr-sg{display:none}
 .wr-zoom{display:none}
 .wr-full .wr-zoom{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
 .wr-full .wr-zoom .btn.small{width:44px;padding:9px 0;font-size:19px;line-height:1}
@@ -5368,7 +5369,7 @@ function wrZoomStep(d){const i=Math.max(0,Math.min(WR_ZOOMS.length-1,wrZoomIdx()
 function wrFullLayout(){if(!WR||!wrIsFull())return;const wrap=document.getElementById('wrWrap'),page=wrap.querySelector('.wr-page'),sc=document.getElementById('wrScroll'+WR.ii);if(!page||!sc)return;
  const sw=sc.clientWidth,H=wrap.clientHeight,base=sw<520?sw/2.6:Math.min(wrap.clientWidth,H)*0.2;
  const cell=Math.round(Math.max(80,Math.min(base*WR_ZOOMS[wrZoomIdx()],H*0.5,sw*0.95,560)));
- wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();
+ wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();page.scrollTop=0;
  sc.scrollLeft=Math.max(0,WR.cell*cell-Math.min(cell,sw-cell))}
 function wrToggleFull(){const wrap=document.getElementById('wrWrap');if(!wrap||!WR)return;const on=!wrap.classList.contains('wr-full');wrap.classList.toggle('wr-full',on);try{localStorage.setItem('wrFull',on?'1':'0')}catch(e){}
  const b=document.getElementById('wrFullBtn');if(b)b.textContent=on?'↙️ Thu nhỏ':'↗️ Toàn màn hình';
