@@ -242,6 +242,42 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:28px;lin
 .wr2-step-in{font-size:21px;font-weight:900;line-height:1;color:var(--ink)}
 .wr2-nstrokes{font-size:11px;font-weight:800;color:var(--muted);padding-bottom:4px;white-space:nowrap}
 .wr-cellguide.model{color:var(--ink)}
+/* Full-screen copybook (iPad): the session covers the whole screen, only the
+   current character row is shown, its cells grow to --wr-cell (set in JS from
+   the free height) and the row auto-scrolls so the active cell stays in view. */
+.wr-topbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.wr-scroll{position:relative}
+.draw-wrap.wr-full{position:fixed;inset:0;z-index:60;border:0;border-radius:0;margin:0;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;
+ padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+ background:var(--bg);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body:has(.wr-full){overflow:hidden}
+/* the view's entry animation leaves a transform, which would trap position:fixed inside it */
+body:has(.wr-full) .view.active{transform:none!important;animation:none!important}
+.wr-full > *{flex:0 0 auto}
+.wr-full h3{font-size:17px}
+.wr-full #wrHud,.wr-full .dr-hint,.wr-full .wr2-word,.wr-full .wr-page-head{display:none}
+.wr-full .wr-item{display:none}
+.wr-full .wr-item.cur{display:block}
+.wr-full #wrWordBox > div:first-child{margin-top:2px}
+.wr-full #wrWordBox > div:first-child > span:first-child{font-size:30px!important}
+.wr-full .wr-chips{margin:6px 0 0}
+.wr-full .wr-chip{font-size:34px;min-width:58px;min-height:64px}
+.wr-full .wr-sg{margin:8px 0 0;font-size:15.5px;padding:8px 14px}
+.wr-full .wr-page{flex:1 1 0;min-height:0;overflow:hidden;margin-top:8px;padding:8px 12px 10px 34px;display:flex;flex-direction:column}
+.wr-full #wrRows{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+.wr-full .wr-item.cur{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+.wr-full .wr2-strip{margin:0 0 6px 2px}
+.wr-full .wr2-step{width:34px;height:38px}
+.wr-full .wr2-step-in{font-size:30px}
+.wr-full .wr2-py{font-size:17px}
+.wr-full .wr-scroll{flex:1 1 0;min-height:0;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.wr-full .wr-scroll::-webkit-scrollbar{display:none}
+.wr-full .wr-line{flex:0 0 auto;margin:0;width:calc(var(--wr-cell,300px) * 10)!important;height:var(--wr-cell,300px);aspect-ratio:auto!important}
+.wr-full #wrFb{min-height:0}
+.wr-full #wrFb .dr-result{margin-top:8px;padding:8px 14px}
+.wr-full .draw-tools{margin-top:8px}
+.wr-full .draw-tools .btn.small{padding:13px 18px;font-size:14px}
+.wr-full .draw-tools input[type=range]{flex:1;max-width:320px}
 .wr-cellguide.trace{color:#9AA3AE}
 @media (prefers-color-scheme: dark){.wr-cellguide.trace{color:#7E8CA3}}
 @supports (padding: env(safe-area-inset-top)){.topbar-inner{padding-top:calc(10px + env(safe-area-inset-top))}}
@@ -5240,9 +5276,9 @@ function wrStartFree(){const pool=shuffle(allWords(S.lang));let deck=pool.filter
 function wrSyllables(w){const chs=wrCharsOf(w);if(!w.p)return chs.map(()=> '');const parts=String(w.p).trim().split(/\s+/);if(parts.length===chs.length)return parts;return chs.map((_,i)=>i===0?String(w.p):'')}
 function wrBuildItems(deck){const items=[];deck.forEach((w,wi)=>{const chs=wrCharsOf(w),sy=wrSyllables(w);chs.forEach((ch,ci)=>items.push({ch:ch,wi:wi,ci:ci,syl:sy[ci]||'',first:ci===0}))});return items}
 function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=document.getElementById('gameArea');const list=lessonIdx>=0?wrLessons():[];const L=lessonIdx>=0?list[lessonIdx]:null;const prev=WR||{};const items=wrBuildItems(deck);WR={deck:deck,items:items,ii:0,cell:1,cw:WR_CELLS*200,scores:items.map(()=>Array(WR_CELLS).fill(null)),strokes:[],cur:null,phase:'write',points:0,cellsDone:0,charsDone:0,lesson:lessonIdx,guideOp:prev.guideOp!=null?prev.guideOp:22,dpr:1,dark:!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)};
- area.innerHTML='<div class="draw-wrap">'
+ area.innerHTML='<div class="draw-wrap'+(wrFullPref()?' wr-full':'')+'" id="wrWrap">'
  +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><div class="tag" style="color:#0AA8A0">✍️ Luyện viết — '+LANGS[S.lang].name+(L?' · Bài viết '+(lessonIdx+1)+'/'+list.length:' · Luyện tự do')+'</div><h3 style="margin:4px 0">'+(L?('Bài viết '+(lessonIdx+1)+': '+wrEsc(L.title)+' — Phần '+L.part):'Luyện viết tự do')+'</h3></div><span class="tag" id="wrProg"></span></div>'
- +'<button class="btn small secondary" data-action="write-menu" style="margin-top:2px">‹ Tất cả bài viết</button>'
+ +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ Tất cả bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'🗗 Thu nhỏ':'⛶ Toàn màn hình')+'</button></div>'
  +'<div id="wrHud"></div>'
  +'<div id="wrWordBox"></div>'
  +'<div id="wrSg"></div>'
@@ -5260,17 +5296,18 @@ function wrBuildPage(){const box=document.getElementById('wrRows');if(!box||!WR)
  grid+='<line x1="0" y1="0" x2="'+(WR_CELLS*200)+'" y2="0" stroke="rgba(90,102,125,.55)" stroke-width="1.4"/><line x1="0" y1="200" x2="'+(WR_CELLS*200)+'" y2="200" stroke="rgba(90,102,125,.55)" stroke-width="1.4"/>';
  let html='';
  WR.items.forEach((it,ii)=>{const w=WR.deck[it.wi];
+  html+='<div class="wr-item" id="wrItem'+ii+'">';
   if(it.first)html+='<div class="wr2-word'+(ii===0?' first':'')+'"><span class="wf" style="font-family:'+fnt+'">'+wrEsc(w.f)+'</span><button class="speak" data-action="write-speak-word" data-i="'+it.wi+'" aria-label="Nghe phát âm từ">🔊</button><span class="wm">'+(w.p?wrEsc(w.p)+' · ':'')+wrEsc(w.m)+'</span></div>';
   const n=charStrokes(it.ch);
   html+='<div class="wr2-strip"><span class="wr2-py">'+wrEsc(it.syl||'')+'</span><span class="wr2-steps">'+wrStepsHTML(it.ch)+'</span>'+(n?'<span class="wr2-nstrokes">'+n+' nét · thứ tự nét minh họa</span>':'')+'</div>'
-  +'<div class="wr-line" id="wrLine'+ii+'" style="width:100%;aspect-ratio:'+WR_CELLS+'/1">'
+  +'<div class="wr-scroll" id="wrScroll'+ii+'"><div class="wr-line" id="wrLine'+ii+'" style="width:100%;aspect-ratio:'+WR_CELLS+'/1">'
   +'<svg class="wr-grid" viewBox="0 0 '+(WR_CELLS*200)+' 200" preserveAspectRatio="none" aria-hidden="true">'+grid+'</svg>'
   +'<div class="wr-hl" id="wrHl'+ii+'" style="display:none"></div>'
   +'<div class="wr-guides" id="wrGuides'+ii+'">'
   +'<div class="wr-cellguide model" data-r="'+ii+'" data-c="0" style="left:0;width:'+(100/WR_CELLS)+'%;font-family:'+fnt+'">'+wrEsc(it.ch)+'</div>'
   +[1,2,3].map(c=>'<div class="wr-cellguide trace" data-r="'+ii+'" data-c="'+c+'" style="left:'+(c*100/WR_CELLS)+'%;width:'+(100/WR_CELLS)+'%;font-family:'+fnt+'">'+wrEsc(it.ch)+'</div>').join('')
   +'</div>'
-  +'<canvas class="wr-canvas" id="wrCanvas'+ii+'" width="'+(WR_CELLS*200)+'" height="200"></canvas></div>'});
+  +'<canvas class="wr-canvas" id="wrCanvas'+ii+'" width="'+(WR_CELLS*200)+'" height="200"></canvas></div></div></div>'});
  box.innerHTML=html;
  WR.items.forEach((_,ii)=>wrInitCanvas(ii));
  wrSetCell()}
@@ -5280,10 +5317,28 @@ function wrWordRender(){const box=document.getElementById('wrWordBox');if(!box||
 function wrRowDotsRender(){const d=document.getElementById('wrRowDots');if(!d||!WR)return;let h='<span class="wr-rdlab">Ô</span>';for(let c=1;c<WR_CELLS;c++){const sc=WR.scores[WR.ii][c];const done=sc!=null;h+='<span class="wr-rdot'+(done?' done':c===WR.cell?' cur':'')+'">'+(done?'✓':c)+'</span>'}d.innerHTML=h}
 function wrChipsRender(){const c=document.getElementById('wrChips');if(!c||!WR)return;const wi=WR.items[WR.ii].wi;c.innerHTML=WR.items.map((it,ii)=>({it:it,ii:ii})).filter(o=>o.it.wi===wi).map(o=>{const row=WR.scores[o.ii];const done=row.slice(1).every(s=>s!=null);let cls='',lab=String(o.it.ci+1);if(done){const avg=Math.round(row.slice(1).reduce((a,b)=>a+b,0)/(WR_CELLS-1));cls=avg>=65?'ok':avg>=40?'mid':'low';lab=avg+'%'}else if(o.ii===WR.ii)cls='cur';return '<div class="wr-chip '+cls+'"><span style="font-family:'+LANGS[S.lang].font+'">'+wrEsc(o.it.ch)+'</span><small>'+lab+'</small></div>'}).join('')}
 function wrSetCell(){if(!WR)return;WR.cur=null;WR.phase='write';
- WR.items.forEach((_,ii)=>{const hl=document.getElementById('wrHl'+ii);if(hl){if(ii===WR.ii){hl.style.display='block';hl.style.left=(WR.cell*100/WR_CELLS)+'%';hl.style.width=(100/WR_CELLS)+'%'}else hl.style.display='none'}});
+ WR.items.forEach((_,ii)=>{const row=document.getElementById('wrItem'+ii);if(row)row.classList.toggle('cur',ii===WR.ii);const hl=document.getElementById('wrHl'+ii);if(hl){if(ii===WR.ii){hl.style.display='block';hl.style.left=(WR.cell*100/WR_CELLS)+'%';hl.style.width=(100/WR_CELLS)+'%'}else hl.style.display='none'}});
  wrGuideApply();wrFitGuide();const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='';wrWordRender();wrHudRender();wrSgRender();wrCtlRender();
+ if(wrIsFull()){wrFullLayout();return}
  const line=document.getElementById('wrLine'+WR.ii);if(line)line.scrollIntoView({block:'nearest',behavior:'smooth'})}
-function wrFitGuide(){if(!WR)return;const line=document.getElementById('wrLine0');if(!line)return;const cw=(line.clientWidth||WR.cw)/WR_CELLS;document.querySelectorAll('.wr-guides').forEach(g=>{g.style.fontSize=Math.round(cw*0.74)+'px'})}
+function wrFullPref(){try{return localStorage.getItem('wrFull')!=='0'}catch(e){return true}}
+function wrIsFull(){const w=document.getElementById('wrWrap');return !!(w&&w.classList.contains('wr-full'))}
+/* Size the cells from the free height of the page (capped so ~3 cells fit
+   across in landscape, ~2.3 in portrait), then scroll the row so the previous cell (model or last attempt) stays fully
+   visible on the left with the active cell right next to it. */
+function wrFullLayout(){if(!WR||!wrIsFull())return;const wrap=document.getElementById('wrWrap'),page=wrap.querySelector('.wr-page'),sc=document.getElementById('wrScroll'+WR.ii);if(!page||!sc)return;
+ const avail=sc.clientHeight-4,cell=Math.round(Math.max(110,Math.min(avail,wrap.clientWidth*(wrap.clientWidth>wrap.clientHeight?0.3:0.42),560)));
+ wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();
+ sc.scrollLeft=Math.max(0,(WR.cell-1)*cell)}
+function wrToggleFull(){const wrap=document.getElementById('wrWrap');if(!wrap||!WR)return;const on=!wrap.classList.contains('wr-full');wrap.classList.toggle('wr-full',on);try{localStorage.setItem('wrFull',on?'1':'0')}catch(e){}
+ const b=document.getElementById('wrFullBtn');if(b)b.textContent=on?'🗗 Thu nhỏ':'⛶ Toàn màn hình';
+ if(on){wrFullLayout()}else{wrap.style.removeProperty('--wr-cell');document.querySelectorAll('.wr-scroll').forEach(s=>{s.scrollLeft=0});wrFitGuide();wrResCanvases();const line=document.getElementById('wrLine'+WR.ii);if(line)line.scrollIntoView({block:'center'})}}
+/* Backing-store resolution: the active row in full-screen gets enough pixels
+   for its big cells (sharp ink on retina); every other row stays light. */
+function wrResCanvases(){if(!WR)return;const dpr=window.devicePixelRatio||1,base=Math.min(2,dpr),full=wrIsFull();
+ WR.items.forEach((_,ii)=>{const cv=document.getElementById('wrCanvas'+ii);if(!cv)return;let r=base;if(full&&ii===WR.ii){const w=cv.getBoundingClientRect().width||WR.cw;r=Math.max(base,Math.min(3,dpr*w/WR.cw))}r=Math.round(r*100)/100;
+  if(cv._res!==r){cv._res=r;cv.width=Math.round(WR.cw*r);cv.height=Math.round(200*r);wrRedraw(ii)}})}
+function wrFitGuide(){if(!WR)return;const line=document.getElementById('wrLine'+WR.ii)||document.getElementById('wrLine0');if(!line)return;const cw=(line.clientWidth||WR.cw)/WR_CELLS;document.querySelectorAll('.wr-guides').forEach(g=>{g.style.fontSize=Math.round(cw*0.74)+'px'})}
 function wrHudRender(){const h=document.getElementById('wrHud');if(!h||!WR)return;h.innerHTML='<div class="gscore" style="margin-top:10px"><div class="gs pts"><small>⭐ Điểm</small><b>'+WR.points+'</b></div><div class="gs ok"><small>✅ Ký tự xong</small><b>'+WR.charsDone+'/'+WR.items.length+'</b></div><div class="gs"><small>✒️ Ô đã chấm</small><b>'+WR.cellsDone+'</b></div></div>'}
 function wrSgRender(){const el=document.getElementById('wrSg');if(!el||!WR)return;const fnt=LANGS[S.lang].font;const it=WR.items[WR.ii];if(!it){el.innerHTML='';return}
  const drawn=WR.strokes.filter(s=>s.ii===WR.ii&&s.cell===WR.cell).length,target=charStrokes(it.ch);
@@ -5297,19 +5352,19 @@ function wrCtlRender(){const c=document.getElementById('wrCtl');if(!c||!WR)retur
  if(WR.phase==='write'){c.innerHTML='<button class="btn small secondary" data-action="write-undo">↩️ Nét</button><button class="btn small secondary" data-action="write-clear">🧹 Xóa ô</button><button class="btn small secondary" data-action="write-skip">Bỏ qua ô ›</button><span style="flex:1"></span><button class="btn small" data-action="write-check">✔️ Kiểm tra nét</button>'}
  else if(WR.phase==='checked'){const lastCell=WR.cell>=WR_CELLS-1,lastItem=WR.ii>=WR.items.length-1;c.innerHTML='<button class="btn small secondary" data-action="write-redo-char">✍️ Viết lại ô</button><span style="flex:1"></span><button class="btn small" data-action="write-next">'+(lastCell?(lastItem?'Xong bài ✓':'Hàng chữ tiếp ›'):'Ô tiếp ›')+'</button>'}
  else c.innerHTML=''}
-function wrInitCanvas(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;WR.dpr=Math.min(2,window.devicePixelRatio||1);cv.width=WR.cw*WR.dpr;cv.height=200*WR.dpr;
- if(!window._wrFitBound){window._wrFitBound=true;window.addEventListener('resize',()=>{wrFitGuide()})}
+function wrInitCanvas(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;WR.dpr=Math.min(2,window.devicePixelRatio||1);cv.width=WR.cw*WR.dpr;cv.height=200*WR.dpr;cv._res=WR.dpr;
+ if(!window._wrFitBound){window._wrFitBound=true;window.addEventListener('resize',()=>{if(wrIsFull())wrFullLayout();else wrFitGuide()})}
  function pos(e){const rc=cv.getBoundingClientRect();return{x:(e.clientX-rc.left)/rc.width*WR.cw,y:(e.clientY-rc.top)/rc.height*200,p:e.pressure&&e.pressure>0?e.pressure:.5}}
- cv.onpointerdown=e=>{if(!WR||WR.phase!=='write'||ii!==WR.ii)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.cur={ii:ii,cell:WR.cell,pts:[pos(e)]};WR.strokes.push(WR.cur);wrRedraw(ii);sfx('draw')};
- cv.onpointermove=e=>{if(!WR||!WR.cur||WR.cur.ii!==ii)return;e.preventDefault();const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];evs.forEach(ev=>WR.cur.pts.push(pos(ev)));wrRedraw(ii)};
- const end=()=>{if(WR&&WR.cur&&WR.cur.ii===ii){WR.cur=null;wrSgRender()}};cv.onpointerup=end;cv.onpointercancel=end;wrRedraw(ii)}
+ cv.onpointerdown=e=>{if(!WR||WR.phase!=='write'||ii!==WR.ii)return;e.preventDefault();if(e.pointerType==='pen')WR.pen=true;if((WR.pen&&e.pointerType==='touch')||WR.cur)return;try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.cur={ii:ii,cell:WR.cell,pid:e.pointerId,pts:[pos(e)]};WR.strokes.push(WR.cur);wrRedraw(ii);sfx('draw')};
+ cv.onpointermove=e=>{if(!WR||!WR.cur||WR.cur.ii!==ii||e.pointerId!==WR.cur.pid)return;e.preventDefault();const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];evs.forEach(ev=>WR.cur.pts.push(pos(ev)));wrRedraw(ii)};
+ const end=e=>{if(WR&&WR.cur&&WR.cur.ii===ii&&e.pointerId===WR.cur.pid){WR.cur=null;wrSgRender()}};cv.onpointerup=end;cv.onpointercancel=end;wrRedraw(ii)}
 function wrWidth(p,dist){const pr=p.p||.5;return Math.max(1.2,Math.min(13,8.5*(0.45+pr*1.15)/(1+dist*0.02)))}
 function wrPaint(ctx,list,forScore){ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=forScore?'#101418':(WR&&WR.dark?'#DCE6F7':'#22335C');ctx.globalAlpha=1;
  for(let si=0;si<list.length;si++){const pts=list[si].pts;
   if(pts.length<3){const a=pts[0],b=pts[pts.length-1];ctx.beginPath();ctx.lineWidth=wrWidth(a,0);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x+.01,b.y+.01);ctx.stroke()}
   else{for(let i=1;i<pts.length-1;i++){const p0=pts[i-1],p1=pts[i],p2=pts[i+1];const d=Math.hypot(p1.x-p0.x,p1.y-p0.y);ctx.beginPath();ctx.lineWidth=wrWidth(p1,d);ctx.moveTo((p0.x+p1.x)/2,(p0.y+p1.y)/2);ctx.quadraticCurveTo(p1.x,p1.y,(p1.x+p2.x)/2,(p1.y+p2.y)/2);ctx.stroke()}}}
  ctx.globalAlpha=1}
-function wrRedraw(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;const ctx=cv.getContext('2d');ctx.setTransform(WR.dpr||1,0,0,WR.dpr||1,0,0);ctx.clearRect(0,0,WR.cw,200);wrPaint(ctx,WR.strokes.filter(s=>s.ii===ii),false)}
+function wrRedraw(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;const ctx=cv.getContext('2d');const r=cv._res||WR.dpr||1;ctx.setTransform(r,0,0,r,0,0);ctx.clearRect(0,0,WR.cw,200);wrPaint(ctx,WR.strokes.filter(s=>s.ii===ii),false)}
 function wrScoreCalc(){const W=200,t=WR.items[WR.ii].ch;const mc=document.createElement('canvas');mc.width=W;mc.height=W;const mx=mc.getContext('2d');mx.fillStyle='#000';mx.font='900 148px '+LANGS[S.lang].font;mx.textAlign='center';mx.textBaseline='middle';mx.fillText(t,W/2,W/2+4);
  const ic=document.createElement('canvas');ic.width=W;ic.height=W;const ix=ic.getContext('2d');ix.save();ix.translate(-WR.cell*200,0);wrPaint(ix,WR.strokes.filter(s=>s.ii===WR.ii&&s.cell===WR.cell),true);ix.restore();
  const md=mx.getImageData(0,0,W,W).data,id=ix.getImageData(0,0,W,W).data;const step=2;let gT=0,gH=0,iT=0,iS=0;const gAt=(x,y)=>md[(y*W+x)*4+3]>40,iAt=(x,y)=>id[(y*W+x)*4+3]>40;
@@ -5387,6 +5442,7 @@ document.addEventListener('click',function(e){const el=e.target&&e.target.closes
  else if(a==='write-lesson')wrStartLesson(+el.dataset.i);
  else if(a==='write-free')wrStartFree();
  else if(a==='write-menu')startWrite();
+ else if(a==='write-full')wrToggleFull();
  else if(a==='draw-hear'){if(DR)speak(drTargetText())}
  else if(a==='draw-color'){if(DR){DR.color=el.dataset.c;if(DR.tool==='erase')drSetBrush('pencil');const cc=document.getElementById('drCustomColor');if(cc)cc.value=el.dataset.c;sfx('click');document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s===el))}}
  else if(a==='draw-undo')drUndo();
