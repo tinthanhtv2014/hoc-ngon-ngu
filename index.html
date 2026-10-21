@@ -298,6 +298,15 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
  .wr-full #wrFb .dr-result{padding:6px 10px;gap:10px}
  .wr-full #wrFb .dr-score{font-size:24px}
  .wr-full #wrFb .dr-rtext{font-size:12px}
+ .wr-full .wr-page,.wr-full #wrRows,.wr-full .wr-item.cur,.wr-full .wr-scroll{flex:0 0 auto}
+ .wr-full .wr-page{min-height:0}
+ .wr-full > div:first-child{display:none}
+ .wr-full #wrCtl{margin-top:auto;padding-top:8px}
+ .wr-full .wr-topbtns{order:99;margin-top:8px;flex-wrap:nowrap;align-items:center}
+ .wr-full .wr-topbtns .btn{white-space:nowrap}
+ .wr-full .wr-sm-hide{display:none}
+ .wr-full #wrWordBox{margin-top:auto}
+ .wr-full .wr-topbtns #wrProg{font-size:10.5px;white-space:nowrap}
  .wr-full #wrCtl{flex-wrap:nowrap;gap:6px}
  .wr-full #wrCtl > span{display:none}
  .wr-full #wrCtl .btn.small{flex:1 1 0;min-width:0;padding:11px 4px;font-size:11px;letter-spacing:0;line-height:1.2;white-space:normal}
@@ -5303,7 +5312,7 @@ function wrBuildItems(deck){const items=[];deck.forEach((w,wi)=>{const chs=wrCha
 function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=document.getElementById('gameArea');const list=lessonIdx>=0?wrLessons():[];const L=lessonIdx>=0?list[lessonIdx]:null;const prev=WR||{};const items=wrBuildItems(deck);WR={deck:deck,items:items,ii:0,cell:1,cw:WR_CELLS*200,scores:items.map(()=>Array(WR_CELLS).fill(null)),strokes:[],cur:null,phase:'write',points:0,cellsDone:0,charsDone:0,lesson:lessonIdx,guideOp:prev.guideOp!=null?prev.guideOp:22,dpr:1,dark:!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)};
  area.innerHTML='<div class="draw-wrap'+(wrFullPref()?' wr-full':'')+'" id="wrWrap">'
  +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><div class="tag" style="color:#0AA8A0">✍️ Luyện viết — '+LANGS[S.lang].name+(L?' · Bài viết '+(lessonIdx+1)+'/'+list.length:' · Luyện tự do')+'</div><h3 style="margin:4px 0">'+(L?('Bài viết '+(lessonIdx+1)+': '+wrEsc(L.title)+' — Phần '+L.part):'Luyện viết tự do')+'</h3></div></div>'
- +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ Tất cả bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'↙️ Thu nhỏ':'↗️ Toàn màn hình')+'</button><span class="tag" id="wrProg"></span></div>'
+ +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ <span class="wr-sm-hide">Tất cả </span>bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'↙️ Thu nhỏ':'↗️ Toàn màn hình')+'</button><span class="tag" id="wrProg"></span></div>'
  +'<div id="wrHud"></div>'
  +'<div id="wrWordBox"></div>'
  +'<div id="wrSg"></div>'
@@ -5350,11 +5359,11 @@ function wrFullPref(){try{return localStorage.getItem('wrFull')!=='0'}catch(e){r
 function wrIsFull(){const w=document.getElementById('wrWrap');return !!(w&&w.classList.contains('wr-full'))}
 /* Size the cells from the free height of the page (capped so ~3 cells fit
    across in landscape, ~2.3 in portrait), then scroll the row so the active cell is fully visible with the previous cell
-   (model or last attempt) to its left — whole on tablets, a slice on phones. */
+   (model or last attempt) whole on its left. Phones size from width only. */
 function wrFullLayout(){if(!WR||!wrIsFull())return;const wrap=document.getElementById('wrWrap'),page=wrap.querySelector('.wr-page'),sc=document.getElementById('wrScroll'+WR.ii);if(!page||!sc)return;
  wrap.style.setProperty('--wr-cell','110px');
- const sw=sc.clientWidth,vis=sw<520?1.4:(wrap.clientWidth>wrap.clientHeight?3.1:2.15);
- const cell=Math.round(Math.max(110,Math.min(sc.clientHeight-4,sw/vis,560)));
+ const sw=sc.clientWidth,phone=sw<520,vis=phone?2.3:(wrap.clientWidth>wrap.clientHeight?3.1:2.15);
+ const cell=Math.round(Math.max(phone?100:110,Math.min(phone?1e4:sc.clientHeight-4,sw/vis,560)));
  wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();
  sc.scrollLeft=Math.max(0,WR.cell*cell-Math.min(cell,sw-cell))}
 function wrToggleFull(){const wrap=document.getElementById('wrWrap');if(!wrap||!WR)return;const on=!wrap.classList.contains('wr-full');wrap.classList.toggle('wr-full',on);try{localStorage.setItem('wrFull',on?'1':'0')}catch(e){}
@@ -5468,7 +5477,7 @@ document.addEventListener('click',function(e){const el=e.target&&e.target.closes
  else if(a==='write-speak-word'){if(WR&&WR.deck[+el.dataset.i])speak(WR.deck[+el.dataset.i].f)}
  else if(a==='write-lesson')wrStartLesson(+el.dataset.i);
  else if(a==='write-free')wrStartFree();
- else if(a==='write-menu')startWrite();
+ else if(a==='write-menu'){if(WR&&WR.phase!=='end'&&WR.cellsDone+WR.strokes.length>0&&document.getElementById('wrWrap')&&!confirm('Thoát bài đang viết? Phần đã viết sẽ không được lưu.'))return;startWrite()}
  else if(a==='write-full')wrToggleFull();
  else if(a==='draw-hear'){if(DR)speak(drTargetText())}
  else if(a==='draw-color'){if(DR){DR.color=el.dataset.c;if(DR.tool==='erase')drSetBrush('pencil');const cc=document.getElementById('drCustomColor');if(cc)cc.value=el.dataset.c;sfx('click');document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s===el))}}
