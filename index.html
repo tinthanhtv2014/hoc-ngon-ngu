@@ -255,7 +255,11 @@ body:has(.wr-full){overflow:hidden}
 body:has(.wr-full) .view.active{transform:none!important;animation:none!important}
 .wr-full > *{flex:0 0 auto}
 .wr-full h3{font-size:17px}
-.wr-full #wrHud,.wr-full .dr-hint,.wr-full .wr2-word,.wr-full .wr-page-head{display:none}
+.wr-full #wrHud,.wr-full .dr-hint,.wr-full .wr2-word,.wr-full .wr-page-head,.wr-full .tag:not(#wrProg){display:none}
+.wr-full h3{margin:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wr-topbtns #wrProg{margin-left:auto;align-self:center}
+.draw-wrap.wr-full{overflow-y:auto}
+.wr-full .wr-page{min-height:calc(var(--wr-cell,110px) + 56px)}
 .wr-full .wr-item{display:none}
 .wr-full .wr-item.cur{display:block}
 .wr-full #wrWordBox > div:first-child{margin-top:2px}
@@ -278,6 +282,27 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
 .wr-full .draw-tools{margin-top:8px}
 .wr-full .draw-tools .btn.small{padding:13px 18px;font-size:14px}
 .wr-full .draw-tools input[type=range]{flex:1;max-width:320px}
+@media (max-width:600px){
+ .draw-wrap.wr-full{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+ .wr-full h3,.wr-full .wr-chips,.wr-full .wr-rowdots,.wr-full .wr-sg,.wr-full .wr2-nstrokes{display:none}
+ .wr-full .wr-topbtns .btn.small{padding:8px 10px;font-size:11px}
+ .wr-full #wrWordBox > div:first-child{margin-top:6px!important;gap:6px!important}
+ .wr-full #wrWordBox > div:first-child > span:first-child{font-size:24px!important}
+ .wr-full #wrWordBox .speak{width:34px;height:34px;font-size:15px}
+ .wr-full .wr-page{padding:6px 6px 8px 20px}
+ .wr-full .wr-page::before{left:11px}
+ .wr-full .wr2-strip{margin-bottom:4px;min-height:0}
+ .wr-full .wr2-step{width:24px;height:28px}
+ .wr-full .wr2-step-in{font-size:21px}
+ .wr-full .wr2-py{font-size:14px;min-width:0}
+ .wr-full #wrFb .dr-result{padding:6px 10px;gap:10px}
+ .wr-full #wrFb .dr-score{font-size:24px}
+ .wr-full #wrFb .dr-rtext{font-size:12px}
+ .wr-full #wrCtl{flex-wrap:nowrap;gap:6px}
+ .wr-full #wrCtl > span{display:none}
+ .wr-full #wrCtl .btn.small{flex:1 1 0;min-width:0;padding:11px 4px;font-size:11px;letter-spacing:0;line-height:1.2;white-space:normal}
+ .wr-full .draw-tools{margin-top:6px}
+}
 .wr-cellguide.trace{color:#9AA3AE}
 @media (prefers-color-scheme: dark){.wr-cellguide.trace{color:#7E8CA3}}
 @supports (padding: env(safe-area-inset-top)){.topbar-inner{padding-top:calc(10px + env(safe-area-inset-top))}}
@@ -5277,8 +5302,8 @@ function wrSyllables(w){const chs=wrCharsOf(w);if(!w.p)return chs.map(()=> '');c
 function wrBuildItems(deck){const items=[];deck.forEach((w,wi)=>{const chs=wrCharsOf(w),sy=wrSyllables(w);chs.forEach((ch,ci)=>items.push({ch:ch,wi:wi,ci:ci,syl:sy[ci]||'',first:ci===0}))});return items}
 function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=document.getElementById('gameArea');const list=lessonIdx>=0?wrLessons():[];const L=lessonIdx>=0?list[lessonIdx]:null;const prev=WR||{};const items=wrBuildItems(deck);WR={deck:deck,items:items,ii:0,cell:1,cw:WR_CELLS*200,scores:items.map(()=>Array(WR_CELLS).fill(null)),strokes:[],cur:null,phase:'write',points:0,cellsDone:0,charsDone:0,lesson:lessonIdx,guideOp:prev.guideOp!=null?prev.guideOp:22,dpr:1,dark:!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)};
  area.innerHTML='<div class="draw-wrap'+(wrFullPref()?' wr-full':'')+'" id="wrWrap">'
- +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><div class="tag" style="color:#0AA8A0">✍️ Luyện viết — '+LANGS[S.lang].name+(L?' · Bài viết '+(lessonIdx+1)+'/'+list.length:' · Luyện tự do')+'</div><h3 style="margin:4px 0">'+(L?('Bài viết '+(lessonIdx+1)+': '+wrEsc(L.title)+' — Phần '+L.part):'Luyện viết tự do')+'</h3></div><span class="tag" id="wrProg"></span></div>'
- +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ Tất cả bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'🗗 Thu nhỏ':'⛶ Toàn màn hình')+'</button></div>'
+ +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><div class="tag" style="color:#0AA8A0">✍️ Luyện viết — '+LANGS[S.lang].name+(L?' · Bài viết '+(lessonIdx+1)+'/'+list.length:' · Luyện tự do')+'</div><h3 style="margin:4px 0">'+(L?('Bài viết '+(lessonIdx+1)+': '+wrEsc(L.title)+' — Phần '+L.part):'Luyện viết tự do')+'</h3></div></div>'
+ +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ Tất cả bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'↙️ Thu nhỏ':'↗️ Toàn màn hình')+'</button><span class="tag" id="wrProg"></span></div>'
  +'<div id="wrHud"></div>'
  +'<div id="wrWordBox"></div>'
  +'<div id="wrSg"></div>'
@@ -5324,14 +5349,16 @@ function wrSetCell(){if(!WR)return;WR.cur=null;WR.phase='write';
 function wrFullPref(){try{return localStorage.getItem('wrFull')!=='0'}catch(e){return true}}
 function wrIsFull(){const w=document.getElementById('wrWrap');return !!(w&&w.classList.contains('wr-full'))}
 /* Size the cells from the free height of the page (capped so ~3 cells fit
-   across in landscape, ~2.3 in portrait), then scroll the row so the previous cell (model or last attempt) stays fully
-   visible on the left with the active cell right next to it. */
+   across in landscape, ~2.3 in portrait), then scroll the row so the active cell is fully visible with the previous cell
+   (model or last attempt) to its left — whole on tablets, a slice on phones. */
 function wrFullLayout(){if(!WR||!wrIsFull())return;const wrap=document.getElementById('wrWrap'),page=wrap.querySelector('.wr-page'),sc=document.getElementById('wrScroll'+WR.ii);if(!page||!sc)return;
- const avail=sc.clientHeight-4,cell=Math.round(Math.max(110,Math.min(avail,wrap.clientWidth*(wrap.clientWidth>wrap.clientHeight?0.3:0.42),560)));
+ wrap.style.setProperty('--wr-cell','110px');
+ const sw=sc.clientWidth,vis=sw<520?1.4:(wrap.clientWidth>wrap.clientHeight?3.1:2.15);
+ const cell=Math.round(Math.max(110,Math.min(sc.clientHeight-4,sw/vis,560)));
  wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();
- sc.scrollLeft=Math.max(0,(WR.cell-1)*cell)}
+ sc.scrollLeft=Math.max(0,WR.cell*cell-Math.min(cell,sw-cell))}
 function wrToggleFull(){const wrap=document.getElementById('wrWrap');if(!wrap||!WR)return;const on=!wrap.classList.contains('wr-full');wrap.classList.toggle('wr-full',on);try{localStorage.setItem('wrFull',on?'1':'0')}catch(e){}
- const b=document.getElementById('wrFullBtn');if(b)b.textContent=on?'🗗 Thu nhỏ':'⛶ Toàn màn hình';
+ const b=document.getElementById('wrFullBtn');if(b)b.textContent=on?'↙️ Thu nhỏ':'↗️ Toàn màn hình';
  if(on){wrFullLayout()}else{wrap.style.removeProperty('--wr-cell');document.querySelectorAll('.wr-scroll').forEach(s=>{s.scrollLeft=0});wrFitGuide();wrResCanvases();const line=document.getElementById('wrLine'+WR.ii);if(line)line.scrollIntoView({block:'center'})}}
 /* Backing-store resolution: the active row in full-screen gets enough pixels
    for its big cells (sharp ink on retina); every other row stays light. */
