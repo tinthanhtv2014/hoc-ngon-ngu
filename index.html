@@ -259,22 +259,24 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
 .wr-full h3{margin:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wr-topbtns #wrProg{margin-left:auto;align-self:center}
 .draw-wrap.wr-full{overflow-y:auto}
-.wr-full .wr-page{min-height:calc(var(--wr-cell,110px) + 56px)}
 .wr-full .wr-item{display:none}
-.wr-full .wr-item.cur{display:block}
+.wr-full .wr-item.cur,.wr-full .wr-item.after{display:block}
+.wr-full .wr-item.after{margin-top:12px}
 .wr-full #wrWordBox > div:first-child{margin-top:2px}
 .wr-full #wrWordBox > div:first-child > span:first-child{font-size:30px!important}
 .wr-full .wr-chips{margin:6px 0 0}
 .wr-full .wr-chip{font-size:34px;min-width:58px;min-height:64px}
 .wr-full .wr-sg{margin:8px 0 0;font-size:15.5px;padding:8px 14px}
-.wr-full .wr-page{flex:1 1 0;min-height:0;overflow:hidden;margin-top:8px;padding:8px 12px 10px 34px;display:flex;flex-direction:column}
-.wr-full #wrRows{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
-.wr-full .wr-item.cur{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+/* the page fills the free height: current row on top, upcoming rows below it like a real notebook page */
+.wr-full .wr-page{flex:1 1 0!important;min-height:0;overflow:hidden;margin-top:8px;padding:8px 12px 10px 34px}
+.wr-zoom{display:none}
+.wr-full .wr-zoom{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.wr-full .wr-zoom .btn.small{width:44px;padding:9px 0;font-size:19px;line-height:1}
 .wr-full .wr2-strip{margin:0 0 6px 2px}
 .wr-full .wr2-step{width:34px;height:38px}
 .wr-full .wr2-step-in{font-size:30px}
 .wr-full .wr2-py{font-size:17px}
-.wr-full .wr-scroll{flex:1 1 0;min-height:0;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.wr-full .wr-scroll{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .wr-full .wr-scroll::-webkit-scrollbar{display:none}
 .wr-full .wr-line{flex:0 0 auto;margin:0;width:calc(var(--wr-cell,300px) * 10)!important;height:var(--wr-cell,300px);aspect-ratio:auto!important}
 .wr-full #wrFb{min-height:0}
@@ -298,14 +300,13 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
  .wr-full #wrFb .dr-result{padding:6px 10px;gap:10px}
  .wr-full #wrFb .dr-score{font-size:24px}
  .wr-full #wrFb .dr-rtext{font-size:12px}
- .wr-full .wr-page,.wr-full #wrRows,.wr-full .wr-item.cur,.wr-full .wr-scroll{flex:0 0 auto}
- .wr-full .wr-page{min-height:0}
  .wr-full > div:first-child{display:none}
- .wr-full #wrCtl{margin-top:auto;padding-top:8px}
+ .wr-full #wrCtl{padding-top:8px}
+ .wr-full .wr-zoom .btn.small{width:38px}
+ .wr-full .draw-tools input[type=range]{min-width:60px}
  .wr-full .wr-topbtns{order:99;margin-top:8px;flex-wrap:nowrap;align-items:center}
  .wr-full .wr-topbtns .btn{white-space:nowrap}
  .wr-full .wr-sm-hide{display:none}
- .wr-full #wrWordBox{margin-top:auto}
  .wr-full .wr-topbtns #wrProg{font-size:10.5px;white-space:nowrap}
  .wr-full #wrCtl{flex-wrap:nowrap;gap:6px}
  .wr-full #wrCtl > span{display:none}
@@ -5319,7 +5320,7 @@ function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=doc
  +'<div class="wr-page"><div class="wr-page-head"><span>Thứ …… ngày …… tháng ……</span><span>Vở luyện viết</span></div><div id="wrRows"></div></div>'
  +'<div id="wrFb"></div>'
  +'<div class="draw-tools" id="wrCtl"></div>'
- +'<div class="draw-tools"><span class="dr-lab">Mẫu mờ</span><input type="range" id="wrGuideRange" min="0" max="45" value="'+WR.guideOp+'" aria-label="Độ mờ chữ mẫu"><span class="dr-lab" id="wrGuideVal">'+WR.guideOp+'%</span></div>'
+ +'<div class="draw-tools"><span class="dr-lab">Mẫu mờ</span><input type="range" id="wrGuideRange" min="0" max="45" value="'+WR.guideOp+'" aria-label="Độ mờ chữ mẫu"><span class="dr-lab" id="wrGuideVal">'+WR.guideOp+'%</span><span class="wr-zoom"><span class="dr-lab">Cỡ ô</span><button class="btn small secondary" data-action="write-zoom" data-d="-1" aria-label="Thu nhỏ ô">−</button><button class="btn small secondary" data-action="write-zoom" data-d="1" aria-label="Phóng to ô">+</button></span></div>'
  +'<p class="dr-hint">Mỗi chữ <b>1 hàng 10 ô</b>: ô đầu mẫu đậm, 3 ô sau mờ dần để tô, còn lại tự viết. Viết xong bấm <b>✔️ Kiểm tra nét</b>. Mẫu mờ 0% → XP ×1.5.</p></div>';
  wrBuildPage();setTimeout(wrFitGuide,90);area.scrollIntoView({behavior:'smooth',block:'start'})}
 function wrStepsHTML(ch){const n=charStrokes(ch);const fnt=LANGS[S.lang].font;if(!n)return '<span class="wr2-step"><span class="wr2-step-in" style="font-family:'+fnt+'">'+wrEsc(ch)+'</span></span>';const m=Math.min(n,10);let h='';for(let k=1;k<=m;k++){h+='<span class="wr2-step"><span class="wr2-step-in" style="font-family:'+fnt+';clip-path:inset(0 0 '+Math.round((1-k/m)*100)+'% 0)">'+wrEsc(ch)+'</span></span>'}return h}
@@ -5351,19 +5352,22 @@ function wrWordRender(){const box=document.getElementById('wrWordBox');if(!box||
 function wrRowDotsRender(){const d=document.getElementById('wrRowDots');if(!d||!WR)return;let h='<span class="wr-rdlab">Ô</span>';for(let c=1;c<WR_CELLS;c++){const sc=WR.scores[WR.ii][c];const done=sc!=null;h+='<span class="wr-rdot'+(done?' done':c===WR.cell?' cur':'')+'">'+(done?'✓':c)+'</span>'}d.innerHTML=h}
 function wrChipsRender(){const c=document.getElementById('wrChips');if(!c||!WR)return;const wi=WR.items[WR.ii].wi;c.innerHTML=WR.items.map((it,ii)=>({it:it,ii:ii})).filter(o=>o.it.wi===wi).map(o=>{const row=WR.scores[o.ii];const done=row.slice(1).every(s=>s!=null);let cls='',lab=String(o.it.ci+1);if(done){const avg=Math.round(row.slice(1).reduce((a,b)=>a+b,0)/(WR_CELLS-1));cls=avg>=65?'ok':avg>=40?'mid':'low';lab=avg+'%'}else if(o.ii===WR.ii)cls='cur';return '<div class="wr-chip '+cls+'"><span style="font-family:'+LANGS[S.lang].font+'">'+wrEsc(o.it.ch)+'</span><small>'+lab+'</small></div>'}).join('')}
 function wrSetCell(){if(!WR)return;WR.cur=null;WR.phase='write';
- WR.items.forEach((_,ii)=>{const row=document.getElementById('wrItem'+ii);if(row)row.classList.toggle('cur',ii===WR.ii);const hl=document.getElementById('wrHl'+ii);if(hl){if(ii===WR.ii){hl.style.display='block';hl.style.left=(WR.cell*100/WR_CELLS)+'%';hl.style.width=(100/WR_CELLS)+'%'}else hl.style.display='none'}});
+ WR.items.forEach((_,ii)=>{const row=document.getElementById('wrItem'+ii);if(row){row.classList.toggle('cur',ii===WR.ii);row.classList.toggle('after',ii>WR.ii)}const hl=document.getElementById('wrHl'+ii);if(hl){if(ii===WR.ii){hl.style.display='block';hl.style.left=(WR.cell*100/WR_CELLS)+'%';hl.style.width=(100/WR_CELLS)+'%'}else hl.style.display='none'}});
  wrGuideApply();wrFitGuide();const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='';wrWordRender();wrHudRender();wrSgRender();wrCtlRender();
  if(wrIsFull()){wrFullLayout();return}
  const line=document.getElementById('wrLine'+WR.ii);if(line)line.scrollIntoView({block:'nearest',behavior:'smooth'})}
 function wrFullPref(){try{return localStorage.getItem('wrFull')!=='0'}catch(e){return true}}
 function wrIsFull(){const w=document.getElementById('wrWrap');return !!(w&&w.classList.contains('wr-full'))}
-/* Size the cells from the free height of the page (capped so ~3 cells fit
-   across in landscape, ~2.3 in portrait), then scroll the row so the active cell is fully visible with the previous cell
-   (model or last attempt) whole on its left. Phones size from width only. */
+/* Cell size: a notebook-like default (~1/5 of the short screen side on
+   tablets, ~2.6 cells across on phones) times the user's "Cỡ ô" zoom, then
+   scroll the row so the active cell is fully visible with the previous cell
+   (model or last attempt) on its left. */
+const WR_ZOOMS=[0.6,0.75,0.9,1,1.15,1.35,1.6,1.9];
+function wrZoomIdx(){let i=3;try{const v=localStorage.getItem('wrZoom');if(v!=null&&WR_ZOOMS[+v]!=null)i=+v}catch(e){}return i}
+function wrZoomStep(d){const i=Math.max(0,Math.min(WR_ZOOMS.length-1,wrZoomIdx()+d));try{localStorage.setItem('wrZoom',String(i))}catch(e){}wrFullLayout();if(i===0||i===WR_ZOOMS.length-1)toast(i?'Cỡ ô lớn nhất rồi':'Cỡ ô nhỏ nhất rồi')}
 function wrFullLayout(){if(!WR||!wrIsFull())return;const wrap=document.getElementById('wrWrap'),page=wrap.querySelector('.wr-page'),sc=document.getElementById('wrScroll'+WR.ii);if(!page||!sc)return;
- wrap.style.setProperty('--wr-cell','110px');
- const sw=sc.clientWidth,phone=sw<520,vis=phone?2.3:(wrap.clientWidth>wrap.clientHeight?3.1:2.15);
- const cell=Math.round(Math.max(phone?100:110,Math.min(phone?1e4:sc.clientHeight-4,sw/vis,560)));
+ const sw=sc.clientWidth,H=wrap.clientHeight,base=sw<520?sw/2.6:Math.min(wrap.clientWidth,H)*0.2;
+ const cell=Math.round(Math.max(80,Math.min(base*WR_ZOOMS[wrZoomIdx()],H*0.5,sw*0.95,560)));
  wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();
  sc.scrollLeft=Math.max(0,WR.cell*cell-Math.min(cell,sw-cell))}
 function wrToggleFull(){const wrap=document.getElementById('wrWrap');if(!wrap||!WR)return;const on=!wrap.classList.contains('wr-full');wrap.classList.toggle('wr-full',on);try{localStorage.setItem('wrFull',on?'1':'0')}catch(e){}
@@ -5479,6 +5483,7 @@ document.addEventListener('click',function(e){const el=e.target&&e.target.closes
  else if(a==='write-free')wrStartFree();
  else if(a==='write-menu'){if(WR&&WR.phase!=='end'&&WR.cellsDone+WR.strokes.length>0&&document.getElementById('wrWrap')&&!confirm('Thoát bài đang viết? Phần đã viết sẽ không được lưu.'))return;startWrite()}
  else if(a==='write-full')wrToggleFull();
+ else if(a==='write-zoom')wrZoomStep(+el.dataset.d);
  else if(a==='draw-hear'){if(DR)speak(drTargetText())}
  else if(a==='draw-color'){if(DR){DR.color=el.dataset.c;if(DR.tool==='erase')drSetBrush('pencil');const cc=document.getElementById('drCustomColor');if(cc)cc.value=el.dataset.c;sfx('click');document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s===el))}}
  else if(a==='draw-undo')drUndo();
