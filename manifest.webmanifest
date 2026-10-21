@@ -1,0 +1,27 @@
+{
+  "background_color": "#FFFBF0",
+  "description": "Học 4 ngôn ngữ qua bài học, bài thi chứng chỉ và mini game luyện viết.",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "lang": "vi",
+  "name": "App Học Ngôn Ngữ — Anh · Nhật · Hàn · Trung",
+  "orientation": "portrait",
+  "scope": "./",
+  "short_name": "Học Ngôn Ngữ",
+  "start_url": "./",
+  "theme_color": "#FFFBF0",
+  "id": "./"
+}
