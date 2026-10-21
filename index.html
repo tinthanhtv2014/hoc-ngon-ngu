@@ -269,7 +269,7 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
 /* the page fills the free height: current row on top, upcoming rows below it like a real notebook page */
 .wr-full .wr-page{flex:1 1 0!important;min-height:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin-top:8px;padding:8px 12px 10px 34px}
 .wr-full .wr-item.after .wr-line,.wr-full .wr-item.after .wr-canvas{touch-action:pan-x pan-y;cursor:default}
-.wr-full .wr-sg{display:none}
+.wr-full .wr-sg,.wr-full .wr2-nstrokes{display:none}
 .wr-zoom{display:none}
 .wr-full .wr-zoom{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
 .wr-full .wr-zoom .btn.small{width:44px;padding:9px 0;font-size:19px;line-height:1}
@@ -5309,7 +5309,12 @@ function startWrite(){markGame();goTab('games');const area=document.getElementBy
  area.scrollIntoView({behavior:'smooth',block:'start'})}
 function wrStartLesson(i){const L=wrLessons()[i];if(!L)return;wrBeginSession(L.words,i)}
 function wrStartFree(){const pool=shuffle(allWords(S.lang));let deck=pool.filter(w=>{const n=wrCharsOf(w).length;return n>=1&&n<=8}).slice(0,4);if(deck.length<4)deck=deck.concat(pool.filter(w=>deck.indexOf(w)<0).slice(0,4-deck.length));wrBeginSession(deck,-1)}
-function wrSyllables(w){const chs=wrCharsOf(w);if(!w.p)return chs.map(()=> '');const parts=String(w.p).trim().split(/\s+/);if(parts.length===chs.length)return parts;return chs.map((_,i)=>i===0?String(w.p):'')}
+function wrSyllables(w){const chs=wrCharsOf(w);if(!w.p)return chs.map(()=> '');const parts=String(w.p).trim().split(/\s+/);if(parts.length===chs.length)return parts;if(S.lang==='zh'){const sy=wrPinyinSplit(w.p);if(sy.length===chs.length)return sy}return chs.map(()=>'')}
+/* Split run-together pinyin ("Xièxie", "Zǎoshang hǎo") into one syllable per
+   hanzi; only used when the count matches the characters, else left blank. */
+const WR_PY_V='aeiouüvāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ';
+const WR_PY_RE=new RegExp('(?:zh|ch|sh|[bpmfdtnlgkhjqxrzcsyw])?['+WR_PY_V+']+(?:ng(?!['+WR_PY_V+'])|n(?!['+WR_PY_V+'g])|r(?!['+WR_PY_V+']))?','gi');
+function wrPinyinSplit(p){return String(p).split(/[\s'’-]+/).reduce((a,part)=>a.concat(part.match(WR_PY_RE)||[]),[])}
 function wrBuildItems(deck){const items=[];deck.forEach((w,wi)=>{const chs=wrCharsOf(w),sy=wrSyllables(w);chs.forEach((ch,ci)=>items.push({ch:ch,wi:wi,ci:ci,syl:sy[ci]||'',first:ci===0}))});return items}
 function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=document.getElementById('gameArea');const list=lessonIdx>=0?wrLessons():[];const L=lessonIdx>=0?list[lessonIdx]:null;const prev=WR||{};const items=wrBuildItems(deck);WR={deck:deck,items:items,ii:0,cell:1,cw:WR_CELLS*200,scores:items.map(()=>Array(WR_CELLS).fill(null)),strokes:[],cur:null,phase:'write',points:0,cellsDone:0,charsDone:0,lesson:lessonIdx,guideOp:prev.guideOp!=null?prev.guideOp:22,dpr:1,dark:!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)};
  area.innerHTML='<div class="draw-wrap'+(wrFullPref()?' wr-full':'')+'" id="wrWrap">'

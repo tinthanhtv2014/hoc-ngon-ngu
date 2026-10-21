@@ -1,5 +1,5 @@
 // Đổi VERSION mỗi khi cập nhật app để máy người dùng tải bản mới.
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CORE = `core-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 
