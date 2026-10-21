@@ -1,5 +1,5 @@
 // Đổi VERSION mỗi khi cập nhật app để máy người dùng tải bản mới.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CORE = `core-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 
@@ -21,7 +21,12 @@ const PRECACHE = [
 const CDN_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CORE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  // cache: 'reload' bỏ qua bộ nhớ đệm HTTP (GitHub Pages giữ file 10 phút), để không lưu nhầm bản cũ.
+  e.waitUntil(
+    caches.open(CORE)
+      .then((c) => c.addAll(PRECACHE.map((u) => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {
@@ -38,12 +43,15 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
 
   // Trang chính: ưu tiên mạng để luôn có bản mới, mất mạng thì dùng bản đã lưu.
+  // cache: 'no-cache' = luôn hỏi lại server (rẻ, trả 304 nếu không đổi) thay vì dùng bản đệm cũ.
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CORE).then((c) => c.put('index.html', copy));
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CORE).then((c) => c.put('index.html', copy));
+          }
           return res;
         })
         .catch(() => caches.match('index.html'))

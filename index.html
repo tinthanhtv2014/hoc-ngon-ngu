@@ -5468,7 +5468,23 @@ document.addEventListener('pointerdown',function(){audio()}, {once:true});
 </script>
 <!-- PWA: offline cache + iOS "add to home screen" hint -->
 <script>
-if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+if('serviceWorker' in navigator){
+  addEventListener('load',function(){navigator.serviceWorker.register('sw.js').then(function(r){
+    // installed home-screen apps resume from memory: look for an update whenever the app comes back
+    document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')r.update().catch(function(){})});
+  }).catch(function(){})});
+  // A new version took over: offer a reload instead of forcing one (progress lives in memory only).
+  var hadCtl=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(!hadCtl){hadCtl=true;return}
+    if(document.getElementById('pwaUpdate'))return;
+    var b=document.createElement('button');b.id='pwaUpdate';b.type='button';
+    b.textContent='🔄 Có bản mới — bấm để cập nhật';
+    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));z-index:2147483001;'
+      +'background:#0AA8A0;color:#fff;border:0;border-radius:999px;padding:10px 18px;font:700 14px -apple-system,system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25)';
+    b.onclick=function(){location.reload()};document.body.appendChild(b);
+  });
+}
 (function(){
   var ua=navigator.userAgent||'';
   var iOS=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
