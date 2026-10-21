@@ -5368,12 +5368,17 @@ function wrIsFull(){const w=document.getElementById('wrWrap');return !!(w&&w.cla
    tablets, ~2.6 cells across on phones) times the user's "Cỡ ô" zoom, then
    scroll the row so the active cell is fully visible with the previous cell
    (model or last attempt) on its left. */
-const WR_ZOOMS=[0.6,0.75,0.9,1,1.15,1.35,1.6,1.9];
-function wrZoomIdx(){let i=3;try{const v=localStorage.getItem('wrZoom');if(v!=null&&WR_ZOOMS[+v]!=null)i=+v}catch(e){}return i}
-function wrZoomStep(d){const i=Math.max(0,Math.min(WR_ZOOMS.length-1,wrZoomIdx()+d));try{localStorage.setItem('wrZoom',String(i))}catch(e){}wrFullLayout();if(i===0||i===WR_ZOOMS.length-1)toast(i?'Cỡ ô lớn nhất rồi':'Cỡ ô nhỏ nhất rồi')}
+const WR_ZOOMS=[0.25,0.35,0.45,0.6,0.75,0.9,1,1.15,1.35,1.6,1.9],WR_ZOOM_DEF=6;
+function wrZoomIdx(){let i=WR_ZOOM_DEF;try{const v=localStorage.getItem('wrZoom2');if(v!=null&&WR_ZOOMS[+v]!=null)i=+v}catch(e){}return i}
+function wrZoomSet(i){try{localStorage.setItem('wrZoom2',String(i))}catch(e){}}
+function wrCellPx(){const w=document.getElementById('wrWrap');return w?parseFloat(w.style.getPropertyValue('--wr-cell'))||0:0}
+/* Smallest size = the whole 10-cell row fits the screen; a step that no
+   longer changes anything is undone, so "+" responds straight away again. */
+function wrZoomStep(d){const i0=wrZoomIdx(),i=Math.max(0,Math.min(WR_ZOOMS.length-1,i0+d)),before=wrCellPx();wrZoomSet(i);wrFullLayout();
+ if(i===i0||wrCellPx()===before){wrZoomSet(i0);wrFullLayout();toast(d<0?'Nhỏ nhất rồi — đã thấy đủ cả hàng 10 ô':'Cỡ ô lớn nhất rồi')}}
 function wrFullLayout(){if(!WR||!wrIsFull())return;const wrap=document.getElementById('wrWrap'),page=wrap.querySelector('.wr-page'),sc=document.getElementById('wrScroll'+WR.ii);if(!page||!sc)return;
  const sw=sc.clientWidth,H=wrap.clientHeight,base=sw<520?sw/2.6:Math.min(wrap.clientWidth,H)*0.2;
- const cell=Math.round(Math.max(80,Math.min(base*WR_ZOOMS[wrZoomIdx()],H*0.5,sw*0.95,560)));
+ const cell=Math.max(Math.floor(sw/WR_CELLS),Math.round(Math.min(base*WR_ZOOMS[wrZoomIdx()],H*0.5,sw*0.95,560)));
  wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();page.scrollTop=0;
  sc.scrollLeft=Math.max(0,WR.cell*cell-Math.min(cell,sw-cell))}
 function wrToggleFull(){const wrap=document.getElementById('wrWrap');if(!wrap||!WR)return;const on=!wrap.classList.contains('wr-full');wrap.classList.toggle('wr-full',on);try{localStorage.setItem('wrFull',on?'1':'0')}catch(e){}
@@ -5401,9 +5406,18 @@ function wrCtlRender(){const c=document.getElementById('wrCtl');if(!c||!WR)retur
 function wrInitCanvas(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;WR.dpr=Math.min(2,window.devicePixelRatio||1);cv.width=WR.cw*WR.dpr;cv.height=200*WR.dpr;cv._res=WR.dpr;
  if(!window._wrFitBound){window._wrFitBound=true;window.addEventListener('resize',()=>{if(wrIsFull())wrFullLayout();else wrFitGuide()})}
  function pos(e){const rc=cv.getBoundingClientRect();return{x:(e.clientX-rc.left)/rc.width*WR.cw,y:(e.clientY-rc.top)/rc.height*200,p:e.pressure&&e.pressure>0?e.pressure:.5}}
- cv.onpointerdown=e=>{if(!WR||WR.phase!=='write'||ii!==WR.ii)return;e.preventDefault();if(e.pointerType==='pen')WR.pen=true;if((WR.pen&&e.pointerType==='touch')||WR.cur)return;try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.cur={ii:ii,cell:WR.cell,pid:e.pointerId,pts:[pos(e)]};WR.strokes.push(WR.cur);wrRedraw(ii);sfx('draw')};
- cv.onpointermove=e=>{if(!WR||!WR.cur||WR.cur.ii!==ii||e.pointerId!==WR.cur.pid)return;e.preventDefault();const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];evs.forEach(ev=>WR.cur.pts.push(pos(ev)));wrRedraw(ii)};
- const end=e=>{if(WR&&WR.cur&&WR.cur.ii===ii&&e.pointerId===WR.cur.pid){WR.cur=null;wrSgRender()}};cv.onpointerup=end;cv.onpointercancel=end;wrRedraw(ii)}
+ cv.onpointerdown=e=>{if(!WR||ii!==WR.ii)return;
+  if(wrIsFull()&&(WR.phase!=='write'||Math.floor(pos(e).x/200)!==WR.cell)){wrPanStart(e,cv,ii);return}
+  if(WR.phase!=='write')return;e.preventDefault();if(e.pointerType==='pen')WR.pen=true;if((WR.pen&&e.pointerType==='touch')||WR.cur)return;try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.cur={ii:ii,cell:WR.cell,pid:e.pointerId,pts:[pos(e)]};WR.strokes.push(WR.cur);wrRedraw(ii);sfx('draw')};
+ cv.onpointermove=e=>{if(WR&&WR.pan&&WR.pan.pid===e.pointerId){e.preventDefault();const P=WR.pan;P.sc.scrollLeft=P.sl-(e.clientX-P.x);P.page.scrollTop=P.st-(e.clientY-P.y);return}
+  if(!WR||!WR.cur||WR.cur.ii!==ii||e.pointerId!==WR.cur.pid)return;e.preventDefault();const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];evs.forEach(ev=>WR.cur.pts.push(pos(ev)));wrRedraw(ii)};
+ const end=e=>{if(WR&&WR.pan&&WR.pan.pid===e.pointerId){WR.pan=null;return}if(WR&&WR.cur&&WR.cur.ii===ii&&e.pointerId===WR.cur.pid){WR.cur=null;wrSgRender()}};cv.onpointerup=end;cv.onpointercancel=end;wrRedraw(ii)}
+/* Full-screen: dragging on the active row outside the cell being written
+   slides the row sideways (and the page up/down). With an Apple Pencil in
+   use, finger touches are treated as a resting palm and ignored. */
+function wrPanStart(e,cv,ii){if(WR.pan||WR.cur)return;if(e.pointerType==='pen')WR.pen=true;if(WR.pen&&e.pointerType==='touch')return;e.preventDefault();
+ const sc=document.getElementById('wrScroll'+ii),page=document.querySelector('#wrWrap .wr-page');if(!sc||!page)return;
+ try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.pan={pid:e.pointerId,x:e.clientX,y:e.clientY,sl:sc.scrollLeft,st:page.scrollTop,sc:sc,page:page}}
 function wrWidth(p,dist){const pr=p.p||.5;return Math.max(1.2,Math.min(13,8.5*(0.45+pr*1.15)/(1+dist*0.02)))}
 function wrPaint(ctx,list,forScore){ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=forScore?'#101418':(WR&&WR.dark?'#DCE6F7':'#22335C');ctx.globalAlpha=1;
  for(let si=0;si<list.length;si++){const pts=list[si].pts;
