@@ -242,6 +242,23 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:28px;lin
 .wr2-step-in{font-size:21px;font-weight:900;line-height:1;color:var(--ink)}
 .wr2-nstrokes{font-size:11px;font-weight:800;color:var(--muted);padding-bottom:4px;white-space:nowrap}
 .wr-cellguide.model{color:var(--ink)}
+/* writing toolbar: pens + actions. Normal page: sticks just under the top navbar. */
+.wr-toolbar{position:sticky;top:var(--wr-sticky-top,0px);z-index:15;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:12px -18px 0;padding:8px 18px;background:var(--surface);border-bottom:1.5px solid var(--line);box-shadow:0 6px 12px -10px rgba(0,0,0,.25)}
+.wr-toolbar #wrCtl{margin-top:0;flex:1 1 auto}
+.wr-pens{display:flex;gap:3px;padding:3px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface2)}
+.wr-pen{border:0;background:none;border-radius:10px;padding:6px 9px;font:inherit;font-size:12px;font-weight:800;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer;line-height:1}
+.wr-pen .ic{font-size:17px}
+.wr-pen.on{background:var(--surface);color:var(--ink);box-shadow:0 0 0 2px #0AA8A0}
+@media(max-width:600px){.wr-pen .lb{display:none}.wr-pen{padding:6px 8px}.wr-toolbar #wrCtl{flex-basis:100%}.wr-toolbar{margin:10px -14px 0;padding:8px 14px}}
+.wr2-step .wr-sv{width:100%;height:100%;display:block}
+.wr-sv .od{fill:var(--ink);stroke:none}
+.wr-sv .nw{fill:#E5484D;stroke:none}
+.wr-sv.ja path{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.wr-sv.ja .od{stroke:var(--ink)}
+.wr-sv.ja .nw{stroke:#E5484D}
+.wr2-step{padding:1px;width:32px;height:32px}
+.wr2-steps{flex:0 1 auto;min-width:0}
+@media(max-width:600px){.wr2-nstrokes{display:none}.wr2-step{width:28px;height:28px}}
 /* Full-screen copybook (iPad): the session covers the whole screen, only the
    current character row is shown, its cells grow to --wr-cell (set in JS from
    the free height) and the row auto-scrolls so the active cell stays in view. */
@@ -274,7 +291,7 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
 .wr-full .wr-zoom{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
 .wr-full .wr-zoom .btn.small{width:44px;padding:9px 0;font-size:19px;line-height:1}
 .wr-full .wr2-strip{margin:0 0 6px 2px}
-.wr-full .wr2-step{width:34px;height:38px}
+.wr-full .wr2-step{width:38px;height:38px}
 .wr-full .wr2-step-in{font-size:30px}
 .wr-full .wr2-py{font-size:17px}
 .wr-full .wr-scroll{overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -283,6 +300,9 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
 .wr-full #wrFb{min-height:0}
 .wr-full #wrFb .dr-result{margin-top:8px;padding:8px 14px}
 .wr-full .draw-tools{margin-top:8px}
+.wr-full #wrFb{order:1}
+.wr-full .wr-toolbar{order:2;position:static;margin:8px 0 0;padding:0;background:none;border:0;box-shadow:none}
+.wr-full .wr-sliders,.wr-full .dr-hint{order:3}
 .wr-full .draw-tools .btn.small{padding:13px 18px;font-size:14px}
 .wr-full .draw-tools input[type=range]{flex:1;max-width:320px}
 @media (max-width:600px){
@@ -295,7 +315,7 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
  .wr-full .wr-page{padding:6px 6px 8px 20px}
  .wr-full .wr-page::before{left:11px}
  .wr-full .wr2-strip{margin-bottom:4px;min-height:0}
- .wr-full .wr2-step{width:24px;height:28px}
+ .wr-full .wr2-step{width:28px;height:28px}
  .wr-full .wr2-step-in{font-size:21px}
  .wr-full .wr2-py{font-size:14px;min-width:0}
  .wr-full #wrFb .dr-result{padding:6px 10px;gap:10px}
@@ -309,9 +329,9 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
  .wr-full .wr-topbtns .btn{white-space:nowrap}
  .wr-full .wr-sm-hide{display:none}
  .wr-full .wr-topbtns #wrProg{font-size:10.5px;white-space:nowrap}
- .wr-full #wrCtl{flex-wrap:nowrap;gap:6px}
- .wr-full #wrCtl > span{display:none}
- .wr-full #wrCtl .btn.small{flex:1 1 0;min-width:0;padding:11px 4px;font-size:11px;letter-spacing:0;line-height:1.2;white-space:normal}
+ .wr-toolbar #wrCtl{flex-wrap:nowrap;gap:6px}
+ .wr-toolbar #wrCtl > span{display:none}
+ .wr-toolbar #wrCtl .btn.small{flex:1 1 0;min-width:0;padding:11px 4px;font-size:11px;letter-spacing:0;line-height:1.2;white-space:normal}
  .wr-full .draw-tools{margin-top:6px}
 }
 .wr-cellguide.trace{color:#9AA3AE}
@@ -5316,20 +5336,38 @@ const WR_PY_V='aeiouüvāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ';
 const WR_PY_RE=new RegExp('(?:zh|ch|sh|[bpmfdtnlgkhjqxrzcsyw])?['+WR_PY_V+']+(?:ng(?!['+WR_PY_V+'])|n(?!['+WR_PY_V+'g])|r(?!['+WR_PY_V+']))?','gi');
 function wrPinyinSplit(p){return String(p).split(/[\s'’-]+/).reduce((a,part)=>a.concat(part.match(WR_PY_RE)||[]),[])}
 function wrBuildItems(deck){const items=[];deck.forEach((w,wi)=>{const chs=wrCharsOf(w),sy=wrSyllables(w);chs.forEach((ch,ci)=>items.push({ch:ch,wi:wi,ci:ci,syl:sy[ci]||'',first:ci===0}))});return items}
-function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=document.getElementById('gameArea');const list=lessonIdx>=0?wrLessons():[];const L=lessonIdx>=0?list[lessonIdx]:null;const prev=WR||{};const items=wrBuildItems(deck);WR={deck:deck,items:items,ii:0,cell:1,cw:WR_CELLS*200,scores:items.map(()=>Array(WR_CELLS).fill(null)),strokes:[],cur:null,phase:'write',points:0,cellsDone:0,charsDone:0,lesson:lessonIdx,guideOp:prev.guideOp!=null?prev.guideOp:22,dpr:1,dark:!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)};
+function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=document.getElementById('gameArea');const list=lessonIdx>=0?wrLessons():[];const L=lessonIdx>=0?list[lessonIdx]:null;const prev=WR||{};const items=wrBuildItems(deck);WR={deck:deck,items:items,ii:0,cell:1,cw:WR_CELLS*200,scores:items.map(()=>Array(WR_CELLS).fill(null)),strokes:[],cur:null,phase:'write',points:0,cellsDone:0,charsDone:0,lesson:lessonIdx,guideOp:prev.guideOp!=null?prev.guideOp:22,penType:wrPenPref(),dpr:1,dark:!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)};
  area.innerHTML='<div class="draw-wrap'+(wrFullPref()?' wr-full':'')+'" id="wrWrap">'
  +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><div class="tag" style="color:#0AA8A0">✍️ Luyện viết — '+LANGS[S.lang].name+(L?' · Bài viết '+(lessonIdx+1)+'/'+list.length:' · Luyện tự do')+'</div><h3 style="margin:4px 0">'+(L?('Bài viết '+(lessonIdx+1)+': '+wrEsc(L.title)+' — Phần '+L.part):'Luyện viết tự do')+'</h3></div></div>'
  +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ <span class="wr-sm-hide">Tất cả </span>bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'↙️ Thu nhỏ':'↗️ Toàn màn hình')+'</button><span class="tag" id="wrProg"></span></div>'
  +'<div id="wrHud"></div>'
  +'<div id="wrWordBox"></div>'
  +'<div id="wrSg"></div>'
+ +'<div class="wr-toolbar" id="wrToolbar"><div class="wr-pens" role="radiogroup" aria-label="Loại bút">'+WR_PENS.map(pn=>'<button type="button" class="wr-pen'+(pn.id===WR.penType?' on':'')+'" role="radio" aria-checked="'+(pn.id===WR.penType)+'" data-action="write-pen" data-pen="'+pn.id+'" title="'+pn.name+'"><span class="ic">'+pn.ic+'</span><span class="lb">'+pn.short+'</span></button>').join('')+'</div><div class="draw-tools" id="wrCtl"></div></div>'
  +'<div class="wr-page"><div class="wr-page-head"><span>Thứ …… ngày …… tháng ……</span><span>Vở luyện viết</span></div><div id="wrRows"></div></div>'
  +'<div id="wrFb"></div>'
- +'<div class="draw-tools" id="wrCtl"></div>'
- +'<div class="draw-tools"><span class="dr-lab">Mẫu mờ</span><input type="range" id="wrGuideRange" min="0" max="45" value="'+WR.guideOp+'" aria-label="Độ mờ chữ mẫu"><span class="dr-lab" id="wrGuideVal">'+WR.guideOp+'%</span><span class="wr-zoom"><span class="dr-lab">Cỡ ô</span><button class="btn small secondary" data-action="write-zoom" data-d="-1" aria-label="Thu nhỏ ô">−</button><button class="btn small secondary" data-action="write-zoom" data-d="1" aria-label="Phóng to ô">+</button></span></div>'
- +'<p class="dr-hint">Mỗi chữ <b>1 hàng 10 ô</b>: ô đầu mẫu đậm, 3 ô sau mờ dần để tô, còn lại tự viết. Viết xong bấm <b>✔️ Kiểm tra nét</b>. Mẫu mờ 0% → XP ×1.5.</p></div>';
- wrBuildPage();setTimeout(wrFitGuide,90);area.scrollIntoView({behavior:'smooth',block:'start'})}
-function wrStepsHTML(ch){const n=charStrokes(ch);const fnt=LANGS[S.lang].font;if(!n)return '<span class="wr2-step"><span class="wr2-step-in" style="font-family:'+fnt+'">'+wrEsc(ch)+'</span></span>';const m=Math.min(n,10);let h='';for(let k=1;k<=m;k++){h+='<span class="wr2-step"><span class="wr2-step-in" style="font-family:'+fnt+';clip-path:inset(0 0 '+Math.round((1-k/m)*100)+'% 0)">'+wrEsc(ch)+'</span></span>'}return h}
+ +'<div class="draw-tools wr-sliders"><span class="dr-lab">Mẫu mờ</span><input type="range" id="wrGuideRange" min="0" max="45" value="'+WR.guideOp+'" aria-label="Độ mờ chữ mẫu"><span class="dr-lab" id="wrGuideVal">'+WR.guideOp+'%</span><span class="wr-zoom"><span class="dr-lab">Cỡ ô</span><button class="btn small secondary" data-action="write-zoom" data-d="-1" aria-label="Thu nhỏ ô">−</button><button class="btn small secondary" data-action="write-zoom" data-d="1" aria-label="Phóng to ô">+</button></span></div>'
+ +'<p class="dr-hint">Mỗi chữ <b>1 hàng 10 ô</b>: ô đầu mẫu đậm, 3 ô sau mờ dần để tô, còn lại tự viết. Viết xong bấm <b>✔️ Kiểm tra nét</b>. Chạm nhanh 2 lần vào vở = hoàn tác nét vừa viết. Mẫu mờ 0% → XP ×1.5.</p></div>';
+ wrBuildPage();wrStickyTop();wrLoadStrokes();setTimeout(wrFitGuide,90);area.scrollIntoView({behavior:'smooth',block:'start'})}
+/* STROKE ORDER GUIDE: real stroke-by-stroke steps. Chinese = Hanzi Writer
+   outlines (1024 box, y-up), Japanese = KanjiVG centre lines (109 box), both
+   bundled in assets/strokes/<lang>.json. Each step draws the strokes so far
+   with the newest one in red. Korean builds the syllable block jamo by jamo
+   (초성 → +중성 → +종성). Anything else shows the plain character. */
+const WR_SD={};
+function wrLoadStrokes(){const lg=S.lang;if((lg!=='zh'&&lg!=='ja')||WR_SD[lg])return;WR_SD[lg]='loading';
+ fetch('assets/strokes/'+lg+'.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{WR_SD[lg]=d;if(WR&&S.lang===lg)wrRenderSteps()}).catch(()=>{WR_SD[lg]=null})}
+function wrStrokeData(ch){const d=WR_SD[S.lang];return d&&typeof d==='object'?d[ch]||null:null}
+function wrStrokeCount(ch){const sd=wrStrokeData(ch);return sd?sd.length:charStrokes(ch)}
+function wrRenderSteps(){if(!WR)return;WR.items.forEach((it,ii)=>{const row=document.getElementById('wrItem'+ii);if(!row)return;const st=row.querySelector('.wr2-steps');if(st)st.innerHTML=wrStepsHTML(it.ch);const ns=row.querySelector('.wr2-nstrokes');const n=wrStrokeCount(it.ch);if(ns&&n)ns.textContent=n+' nét · thứ tự nét minh họa'});wrSgRender()}
+function wrStepSvg(paths,k,kind){let g='';for(let i=0;i<k;i++){const cls=i===k-1?'nw':'od';g+=kind==='zh'?'<path class="'+cls+'" d="'+paths[i]+'"/>':'<path class="'+cls+'" d="'+paths[i]+'"/>'}
+ return kind==='zh'?'<svg viewBox="0 0 1024 1024" class="wr-sv zh" aria-hidden="true"><g transform="translate(0 900) scale(1 -1)">'+g+'</g></svg>':'<svg viewBox="0 0 109 109" class="wr-sv ja" aria-hidden="true">'+g+'</svg>'}
+function wrKoSteps(ch){const c=ch.codePointAt(0);if(c<0xAC00||c>0xD7A3)return null;const s=c-0xAC00,ini=Math.floor(s/588),med=Math.floor((s%588)/28),fin=s%28;
+ const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';const out=[CHO[ini],String.fromCodePoint(0xAC00+ini*588+med*28)];if(fin)out.push(ch);return out}
+function wrStepsHTML(ch){const fnt=LANGS[S.lang].font;const box=(inner)=>'<span class="wr2-step">'+inner+'</span>';
+ const sd=wrStrokeData(ch);if(sd){let h='';for(let k=1;k<=sd.length;k++)h+=box(wrStepSvg(sd,k,S.lang));return h}
+ if(S.lang==='ko'){const ks=wrKoSteps(ch);if(ks)return ks.map(x=>box('<span class="wr2-step-in" style="font-family:'+fnt+'">'+wrEsc(x)+'</span>')).join('')}
+ return box('<span class="wr2-step-in" style="font-family:'+fnt+'">'+wrEsc(ch)+'</span>')}
 function wrBuildPage(){const box=document.getElementById('wrRows');if(!box||!WR)return;const fnt=LANGS[S.lang].font;
  let grid='';
  for(let c=0;c<WR_CELLS;c++){const x=c*200;grid+='<line x1="'+(x+100)+'" y1="0" x2="'+(x+100)+'" y2="200" stroke="rgba(120,132,152,.30)" stroke-width="1" stroke-dasharray="6 5"/><line x1="'+x+'" y1="100" x2="'+(x+200)+'" y2="100" stroke="rgba(120,132,152,.30)" stroke-width="1" stroke-dasharray="6 5"/><line x1="'+x+'" y1="0" x2="'+(x+200)+'" y2="200" stroke="rgba(120,132,152,.22)" stroke-width="1" stroke-dasharray="6 5"/><line x1="'+(x+200)+'" y1="0" x2="'+x+'" y2="200" stroke="rgba(120,132,152,.22)" stroke-width="1" stroke-dasharray="6 5"/>'}
@@ -5339,7 +5377,7 @@ function wrBuildPage(){const box=document.getElementById('wrRows');if(!box||!WR)
  WR.items.forEach((it,ii)=>{const w=WR.deck[it.wi];
   html+='<div class="wr-item" id="wrItem'+ii+'">';
   if(it.first)html+='<div class="wr2-word'+(ii===0?' first':'')+'"><span class="wf" style="font-family:'+fnt+'">'+wrEsc(w.f)+'</span><button class="speak" data-action="write-speak-word" data-i="'+it.wi+'" aria-label="Nghe phát âm từ">🔊</button><span class="wm">'+(w.p?wrEsc(w.p)+' · ':'')+wrEsc(w.m)+'</span></div>';
-  const n=charStrokes(it.ch);
+  const n=wrStrokeCount(it.ch);
   html+='<div class="wr2-strip"><span class="wr2-py">'+wrEsc(it.syl||'')+'</span><span class="wr2-steps">'+wrStepsHTML(it.ch)+'</span>'+(n?'<span class="wr2-nstrokes">'+n+' nét · thứ tự nét minh họa</span>':'')+'</div>'
   +'<div class="wr-scroll" id="wrScroll'+ii+'"><div class="wr-line" id="wrLine'+ii+'" style="width:100%;aspect-ratio:'+WR_CELLS+'/1">'
   +'<svg class="wr-grid" viewBox="0 0 '+(WR_CELLS*200)+' 200" preserveAspectRatio="none" aria-hidden="true">'+grid+'</svg>'
@@ -5362,6 +5400,7 @@ function wrSetCell(){if(!WR)return;WR.cur=null;WR.phase='write';
  wrGuideApply();wrFitGuide();const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='';wrWordRender();wrHudRender();wrSgRender();wrCtlRender();
  if(wrIsFull()){wrFullLayout();return}
  const line=document.getElementById('wrLine'+WR.ii);if(line)line.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function wrStickyTop(){const w=document.getElementById('wrWrap');if(!w)return;const tb=document.querySelector('.topbar');const h=tb&&getComputedStyle(tb).position==='sticky'?tb.getBoundingClientRect().height:0;w.style.setProperty('--wr-sticky-top',Math.round(h)+'px')}
 function wrFullPref(){try{return localStorage.getItem('wrFull')!=='0'}catch(e){return true}}
 function wrIsFull(){const w=document.getElementById('wrWrap');return !!(w&&w.classList.contains('wr-full'))}
 /* Cell size: a notebook-like default (~1/5 of the short screen side on
@@ -5392,7 +5431,7 @@ function wrResCanvases(){if(!WR)return;const dpr=window.devicePixelRatio||1,base
 function wrFitGuide(){if(!WR)return;const line=document.getElementById('wrLine'+WR.ii)||document.getElementById('wrLine0');if(!line)return;const cw=(line.clientWidth||WR.cw)/WR_CELLS;document.querySelectorAll('.wr-guides').forEach(g=>{g.style.fontSize=Math.round(cw*0.74)+'px'})}
 function wrHudRender(){const h=document.getElementById('wrHud');if(!h||!WR)return;h.innerHTML='<div class="gscore" style="margin-top:10px"><div class="gs pts"><small>⭐ Điểm</small><b>'+WR.points+'</b></div><div class="gs ok"><small>✅ Ký tự xong</small><b>'+WR.charsDone+'/'+WR.items.length+'</b></div><div class="gs"><small>✒️ Ô đã chấm</small><b>'+WR.cellsDone+'</b></div></div>'}
 function wrSgRender(){const el=document.getElementById('wrSg');if(!el||!WR)return;const fnt=LANGS[S.lang].font;const it=WR.items[WR.ii];if(!it){el.innerHTML='';return}
- const drawn=WR.strokes.filter(s=>s.ii===WR.ii&&s.cell===WR.cell).length,target=charStrokes(it.ch);
+ const drawn=WR.strokes.filter(s=>s.ii===WR.ii&&s.cell===WR.cell).length,target=wrStrokeCount(it.ch);
  const tag='📄 Hàng '+(WR.ii+1)+'/'+WR.items.length+' · Ô '+WR.cell+'/'+(WR_CELLS-1)+(WR.cell<=3?' (tô theo mẫu xám)':' (tự viết — không mẫu)')+' · ';
  if(target==null){el.className='wr-sg';el.innerHTML=tag+'✍️ Ký tự <b style="font-family:'+fnt+'">'+wrEsc(it.ch)+'</b> — đã viết <b>'+drawn+' nét</b> · xong thì bấm ✔️ Kiểm tra nét';return}
  const dots=Array.from({length:Math.min(target,24)},(_,i)=>i<drawn?'●':'○').join('');
@@ -5400,29 +5439,51 @@ function wrSgRender(){const el=document.getElementById('wrSg');if(!el||!WR)retur
  const remain=target-drawn;el.className='wr-sg'+(remain<=0?' done':'');
  el.innerHTML=tag+'✍️ Ký tự <b style="font-family:'+fnt+'">'+wrEsc(it.ch)+'</b> cần <b>'+target+' nét</b> — đã viết <b>'+drawn+'</b>'+(remain>0?' · <span class="sg-remain">còn '+remain+' nét nữa</span>':' · <span>đủ nét rồi — bấm ✔️ Kiểm tra nét 🎉</span>')+(drawn>target?' (thừa '+(drawn-target)+' nét)':'')+' <span class="sg-dots" aria-hidden="true">'+dots+'</span>'}
 function wrCtlRender(){const c=document.getElementById('wrCtl');if(!c||!WR)return;
- if(WR.phase==='write'){c.innerHTML='<button class="btn small secondary" data-action="write-undo">↩️ Nét</button><button class="btn small secondary" data-action="write-clear">🧹 Xóa ô</button><button class="btn small secondary" data-action="write-skip">Bỏ qua ô ›</button><span style="flex:1"></span><button class="btn small" data-action="write-check">✔️ Kiểm tra nét</button>'}
+ if(WR.phase==='write'){c.innerHTML='<button class="btn small secondary" data-action="write-undo">↩️ Hoàn tác</button><button class="btn small secondary" data-action="write-clear">🧹 Xóa ô</button><button class="btn small secondary" data-action="write-skip">Bỏ qua ô ›</button><span style="flex:1"></span><button class="btn small" data-action="write-check">✔️ Kiểm tra nét</button>'}
  else if(WR.phase==='checked'){const lastCell=WR.cell>=WR_CELLS-1,lastItem=WR.ii>=WR.items.length-1;c.innerHTML='<button class="btn small secondary" data-action="write-redo-char">✍️ Viết lại ô</button><span style="flex:1"></span><button class="btn small" data-action="write-next">'+(lastCell?(lastItem?'Xong bài ✓':'Hàng chữ tiếp ›'):'Ô tiếp ›')+'</button>'}
  else c.innerHTML=''}
 function wrInitCanvas(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;WR.dpr=Math.min(2,window.devicePixelRatio||1);cv.width=WR.cw*WR.dpr;cv.height=200*WR.dpr;cv._res=WR.dpr;
- if(!window._wrFitBound){window._wrFitBound=true;window.addEventListener('resize',()=>{if(wrIsFull())wrFullLayout();else wrFitGuide()})}
+ if(!window._wrFitBound){window._wrFitBound=true;window.addEventListener('resize',()=>{wrStickyTop();if(wrIsFull())wrFullLayout();else wrFitGuide()})}
  function pos(e){const rc=cv.getBoundingClientRect();return{x:(e.clientX-rc.left)/rc.width*WR.cw,y:(e.clientY-rc.top)/rc.height*200,p:e.pressure&&e.pressure>0?e.pressure:.5}}
- cv.onpointerdown=e=>{if(!WR||ii!==WR.ii)return;
+ cv.onpointerdown=e=>{if(!WR)return;wrTapDown(e);if(ii!==WR.ii)return;
   if(wrIsFull()&&(WR.phase!=='write'||Math.floor(pos(e).x/200)!==WR.cell)){wrPanStart(e,cv,ii);return}
-  if(WR.phase!=='write')return;e.preventDefault();if(e.pointerType==='pen')WR.pen=true;if((WR.pen&&e.pointerType==='touch')||WR.cur)return;try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.cur={ii:ii,cell:WR.cell,pid:e.pointerId,pts:[pos(e)]};WR.strokes.push(WR.cur);wrRedraw(ii);sfx('draw')};
+  if(WR.phase!=='write')return;e.preventDefault();if(e.pointerType==='pen')WR.pen=true;if((WR.pen&&e.pointerType==='touch')||WR.cur)return;try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.cur={ii:ii,cell:WR.cell,pid:e.pointerId,pen:WR.penType,pts:[pos(e)]};WR.strokes.push(WR.cur);wrRedraw(ii);sfx('draw')};
  cv.onpointermove=e=>{if(WR&&WR.pan&&WR.pan.pid===e.pointerId){e.preventDefault();const P=WR.pan;P.sc.scrollLeft=P.sl-(e.clientX-P.x);P.page.scrollTop=P.st-(e.clientY-P.y);return}
-  if(!WR||!WR.cur||WR.cur.ii!==ii||e.pointerId!==WR.cur.pid)return;e.preventDefault();const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];evs.forEach(ev=>WR.cur.pts.push(pos(ev)));wrRedraw(ii)};
- const end=e=>{if(WR&&WR.pan&&WR.pan.pid===e.pointerId){WR.pan=null;return}if(WR&&WR.cur&&WR.cur.ii===ii&&e.pointerId===WR.cur.pid){WR.cur=null;wrSgRender()}};cv.onpointerup=end;cv.onpointercancel=end;wrRedraw(ii)}
+  if(!WR||!WR.cur||WR.cur.ii!==ii||e.pointerId!==WR.cur.pid)return;e.preventDefault();let evs=e.getCoalescedEvents?e.getCoalescedEvents():[];if(!evs||!evs.length)evs=[e];evs.forEach(ev=>WR.cur.pts.push(pos(ev)));wrRedraw(ii)};
+ const end=e=>{let st=null;if(WR&&WR.pan&&WR.pan.pid===e.pointerId)WR.pan=null;else if(WR&&WR.cur&&WR.cur.ii===ii&&e.pointerId===WR.cur.pid){st=WR.cur;WR.cur=null;wrSgRender()}if(WR){if(e.type==='pointerup')wrTapUp(e,st);else WR.tap=null}};cv.onpointerup=end;cv.onpointercancel=end;wrRedraw(ii)}
+/* Double tap anywhere on the notebook = undo the last stroke. A tap is short
+   (<250ms) and still (<10px); the dots the two taps may have left are removed
+   too. Works with a finger even while the Pencil is in use (palm rejection
+   only blocks drawing). */
+function wrTapDown(e){WR.tap={pid:e.pointerId,t:performance.now(),x:e.clientX,y:e.clientY}}
+function wrTapUp(e,st){const T=WR.tap;WR.tap=null;if(!T||T.pid!==e.pointerId)return;const now=performance.now();if(now-T.t>250||Math.hypot(e.clientX-T.x,e.clientY-T.y)>10)return;
+ const L=WR.lastTap;if(L&&now-L.t<400&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<40){WR.lastTap=null;let dropped=false;[st,L.st].forEach(s=>{const k=s?WR.strokes.indexOf(s):-1;if(k>=0){WR.strokes.splice(k,1);dropped=true}});if(dropped)wrRedraw(WR.ii);wrUndo(true);return}
+ WR.lastTap={t:now,x:e.clientX,y:e.clientY,st:st}}
 /* Full-screen: dragging on the active row outside the cell being written
    slides the row sideways (and the page up/down). With an Apple Pencil in
    use, finger touches are treated as a resting palm and ignored. */
 function wrPanStart(e,cv,ii){if(WR.pan||WR.cur)return;if(e.pointerType==='pen')WR.pen=true;if(WR.pen&&e.pointerType==='touch')return;e.preventDefault();
  const sc=document.getElementById('wrScroll'+ii),page=document.querySelector('#wrWrap .wr-page');if(!sc||!page)return;
  try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.pan={pid:e.pointerId,x:e.clientX,y:e.clientY,sl:sc.scrollLeft,st:page.scrollTop,sc:sc,page:page}}
-function wrWidth(p,dist){const pr=p.p||.5;return Math.max(1.2,Math.min(13,8.5*(0.45+pr*1.15)/(1+dist*0.02)))}
-function wrPaint(ctx,list,forScore){ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=forScore?'#101418':(WR&&WR.dark?'#DCE6F7':'#22335C');ctx.globalAlpha=1;
- for(let si=0;si<list.length;si++){const pts=list[si].pts;
-  if(pts.length<3){const a=pts[0],b=pts[pts.length-1];ctx.beginPath();ctx.lineWidth=wrWidth(a,0);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x+.01,b.y+.01);ctx.stroke()}
-  else{for(let i=1;i<pts.length-1;i++){const p0=pts[i-1],p1=pts[i],p2=pts[i+1];const d=Math.hypot(p1.x-p0.x,p1.y-p0.y);ctx.beginPath();ctx.lineWidth=wrWidth(p1,d);ctx.moveTo((p0.x+p1.x)/2,(p0.y+p1.y)/2);ctx.quadraticCurveTo(p1.x,p1.y,(p1.x+p2.x)/2,(p1.y+p2.y)/2);ctx.stroke()}}}
+/* PENS — widths are in cell units (a cell is 200 wide). Fixed-width pens are
+   drawn as one smooth path; pressure/speed pens segment by segment. */
+const WR_PENS=[
+ {id:'bi',name:'Bút bi',short:'Bi',ic:'🖊️',w:()=>4.2},
+ {id:'muc',name:'Bút mực',short:'Mực',ic:'✒️',var:true,w:(p,d)=>Math.max(1.2,Math.min(13,8.5*(0.45+p*1.15)/(1+d*0.02)))},
+ {id:'long',name:'Bút lông',short:'Lông',ic:'🖌️',var:true,taper:true,w:(p,d)=>Math.max(2,Math.min(26,17*(0.3+p*1.4)/(1+d*0.035)))},
+ {id:'chi',name:'Bút chì',short:'Chì',ic:'✏️',w:()=>2.8,alpha:.8,color:['#4B5563','#B7C0CC']},
+ {id:'da',name:'Bút dạ',short:'Dạ',ic:'🖍️',w:()=>12}];
+const WR_PEN={};WR_PENS.forEach(pn=>WR_PEN[pn.id]=pn);
+function wrPenPref(){try{const v=localStorage.getItem('wrPen');if(v&&WR_PEN[v])return v}catch(e){}return 'muc'}
+function wrSetPen(id){if(!WR||!WR_PEN[id])return;WR.penType=id;try{localStorage.setItem('wrPen',id)}catch(e){}document.querySelectorAll('.wr-pen').forEach(b=>{const on=b.dataset.pen===id;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on))});toast(WR_PEN[id].ic+' '+WR_PEN[id].name)}
+function wrWidth(p,dist){return WR_PEN.muc.w(p.p||.5,dist)}
+function wrPaint(ctx,list,forScore){ctx.lineCap='round';ctx.lineJoin='round';const ink=forScore?'#101418':(WR&&WR.dark?'#DCE6F7':'#22335C');
+ for(let si=0;si<list.length;si++){const st=list[si],pts=st.pts,pen=WR_PEN[st.pen]||WR_PEN.muc,n=pts.length;
+  ctx.strokeStyle=forScore||!pen.color?ink:pen.color[WR&&WR.dark?1:0];ctx.globalAlpha=forScore?1:(pen.alpha||1);
+  if(!pen.var){ctx.beginPath();ctx.lineWidth=pen.w();ctx.moveTo(pts[0].x,pts[0].y);if(n<3)ctx.lineTo(pts[n-1].x+.01,pts[n-1].y+.01);else{for(let i=1;i<n-1;i++)ctx.quadraticCurveTo(pts[i].x,pts[i].y,(pts[i].x+pts[i+1].x)/2,(pts[i].y+pts[i+1].y)/2);ctx.lineTo(pts[n-1].x,pts[n-1].y)}ctx.stroke();continue}
+  const tp=i=>pen.taper?Math.pow(Math.min(1,(i+1)/5,(n-i)/6),0.6):1;
+  if(n<3){const a=pts[0],b=pts[n-1];ctx.beginPath();ctx.lineWidth=pen.w(a.p||.5,0);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x+.01,b.y+.01);ctx.stroke()}
+  else{for(let i=1;i<n-1;i++){const p0=pts[i-1],p1=pts[i],p2=pts[i+1];const d=Math.hypot(p1.x-p0.x,p1.y-p0.y);ctx.beginPath();ctx.lineWidth=Math.max(1,pen.w(p1.p||.5,d)*tp(i));ctx.moveTo((p0.x+p1.x)/2,(p0.y+p1.y)/2);ctx.quadraticCurveTo(p1.x,p1.y,(p1.x+p2.x)/2,(p1.y+p2.y)/2);ctx.stroke()}}}
  ctx.globalAlpha=1}
 function wrRedraw(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;const ctx=cv.getContext('2d');const r=cv._res||WR.dpr||1;ctx.setTransform(r,0,0,r,0,0);ctx.clearRect(0,0,WR.cw,200);wrPaint(ctx,WR.strokes.filter(s=>s.ii===ii),false)}
 function wrScoreCalc(){const W=200,t=WR.items[WR.ii].ch;const mc=document.createElement('canvas');mc.width=W;mc.height=W;const mx=mc.getContext('2d');mx.fillStyle='#000';mx.font='900 148px '+LANGS[S.lang].font;mx.textAlign='center';mx.textBaseline='middle';mx.fillText(t,W/2,W/2+4);
@@ -5443,7 +5504,7 @@ function wrAdvance(){if(!WR)return;
  WR.ii++;WR.cell=1;wrSetCell();
  const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+(rowAvg>=65?'ok':rowAvg>=40?'mid':'low')+'"><div class="dr-score">'+rowAvg+'<small>%</small></div><div class="dr-rtext"><b>Xong hàng chữ “'+wrEsc(it.ch)+'”!</b> +'+xp+' XP'+(mem?' · 🧠 tắt mẫu tô ×1.5':'')+'<br><span>'+(WR.items[WR.ii].first?('Qua từ mới: <b>'+wrEsc(wrCurWord().f)+'</b> — '+wrEsc(wrCurWord().m)):'Sang hàng chữ tiếp theo trong cùng từ nhé ✍️')+'</span></div></div>'}
 function wrSkip(){if(!WR||WR.phase!=='write')return;WR.scores[WR.ii][WR.cell]=0;WR.cellsDone++;sfx('flip');wrAdvance()}
-function wrUndo(){if(!WR||WR.phase!=='write')return;for(let i=WR.strokes.length-1;i>=0;i--){if(WR.strokes[i].ii===WR.ii&&WR.strokes[i].cell===WR.cell){WR.strokes.splice(i,1);sfx('flip');wrRedraw(WR.ii);wrSgRender();return}}toast('Chưa có nét nào để hoàn tác')}
+function wrUndo(byTap){if(!WR||WR.phase!=='write')return;for(let i=WR.strokes.length-1;i>=0;i--){if(WR.strokes[i].ii===WR.ii&&WR.strokes[i].cell===WR.cell){WR.strokes.splice(i,1);sfx('flip');wrRedraw(WR.ii);wrSgRender();if(byTap)toast('↩️ Đã hoàn tác nét vừa viết');return}}if(byTap)wrSgRender();toast('Chưa có nét nào để hoàn tác')}
 function wrClear(){if(!WR||WR.phase!=='write')return;const before=WR.strokes.length;WR.strokes=WR.strokes.filter(s=>!(s.ii===WR.ii&&s.cell===WR.cell));if(WR.strokes.length===before){toast('Ô này đang trống');return}sfx('flip');wrRedraw(WR.ii);wrSgRender();toast('Đã xóa ô — viết lại nhé')}
 function wrRedoChar(){if(!WR||WR.phase!=='checked')return;WR.points-=WR.scores[WR.ii][WR.cell]||0;if(WR.cellsDone>0)WR.cellsDone--;WR.scores[WR.ii][WR.cell]=null;WR.strokes=WR.strokes.filter(s=>!(s.ii===WR.ii&&s.cell===WR.cell));wrSetCell();wrRedraw(WR.ii);wrHudRender();sfx('flip')}
 function wrEnd(){if(!WR)return;WR.phase='end';const area=document.getElementById('gameArea');const avg=WR.cellsDone?Math.round(WR.points/WR.cellsDone):0;
@@ -5504,6 +5565,7 @@ document.addEventListener('click',function(e){const el=e.target&&e.target.closes
  else if(a==='write-menu'){if(WR&&WR.phase!=='end'&&WR.cellsDone+WR.strokes.length>0&&document.getElementById('wrWrap')&&!confirm('Thoát bài đang viết? Phần đã viết sẽ không được lưu.'))return;startWrite()}
  else if(a==='write-full')wrToggleFull();
  else if(a==='write-zoom')wrZoomStep(+el.dataset.d);
+ else if(a==='write-pen')wrSetPen(el.dataset.pen);
  else if(a==='draw-hear'){if(DR)speak(drTargetText())}
  else if(a==='draw-color'){if(DR){DR.color=el.dataset.c;if(DR.tool==='erase')drSetBrush('pencil');const cc=document.getElementById('drCustomColor');if(cc)cc.value=el.dataset.c;sfx('click');document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s===el))}}
  else if(a==='draw-undo')drUndo();
