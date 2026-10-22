@@ -36,3 +36,7 @@ rồi mở http://localhost:8797
 `assets/strokes/zh.json` (tiếng Trung) và `assets/strokes/ja.json` (tiếng Nhật) chứa nét của các chữ app đang dùng.
 Thêm từ mới có chữ chưa có trong file thì chữ đó chỉ hiện mẫu, không có các bước nét — nhờ Claude tải thêm.
 Nguồn và giấy phép: xem `assets/strokes/NGUON-DU-LIEU.md`.
+
+## Giáo trình tập viết tiếng Trung
+Phần Luyện viết → tiếng Trung có 15 bài Giáo trình Hán ngữ Q1 + 50 bộ thủ (dữ liệu trong `index.html`, tìm `WR_COURSE`).
+Mỗi bài có bảng chữ (phiên âm, Hán Việt, nghĩa, cấu tạo) và vở tập viết từng chữ.
