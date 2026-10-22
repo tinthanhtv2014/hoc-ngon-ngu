@@ -31,3 +31,8 @@ Mở link bằng **Safari** → nút **Chia sẻ** → **Thêm vào MH chính**.
 python3 -m http.server 8797
 ```
 rồi mở http://localhost:8797
+
+## Dữ liệu thứ tự nét
+`assets/strokes/zh.json` (tiếng Trung) và `assets/strokes/ja.json` (tiếng Nhật) chứa nét của các chữ app đang dùng.
+Thêm từ mới có chữ chưa có trong file thì chữ đó chỉ hiện mẫu, không có các bước nét — nhờ Claude tải thêm.
+Nguồn và giấy phép: xem `assets/strokes/NGUON-DU-LIEU.md`.
