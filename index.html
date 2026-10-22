@@ -260,6 +260,10 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:28px;lin
 .wr2-step-in{font-size:21px;font-weight:900;line-height:1;color:var(--ink)}
 .wr2-nstrokes{font-size:11px;font-weight:800;color:var(--muted);padding-bottom:4px;white-space:nowrap}
 .wr-cellguide.model{color:var(--ink)}
+/* explanation widgets kept in code but hidden: the page shows only what is needed to write */
+.wr-sg,.wr2-nstrokes,.wr-page-head,.wr-rowdots,#wrHud{display:none!important}
+.wr-credit{font-size:10.5px;opacity:.7;margin-top:10px}
+.wr-full .wr-credit{display:none}
 /* writing toolbar: pens + actions. Normal page: sticks just under the top navbar. */
 .wr-toolbar{position:sticky;top:var(--wr-sticky-top,0px);z-index:15;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:12px -18px 0;padding:8px 18px;background:var(--surface);border-bottom:1.5px solid var(--line);box-shadow:0 6px 12px -10px rgba(0,0,0,.25)}
 .wr-toolbar #wrCtl{margin-top:0;flex:1 1 auto}
@@ -5358,8 +5362,8 @@ function startWrite(){markGame();goTab('games');const area=document.getElementBy
   rows+='<button class="game-row" data-action="write-lesson" data-i="'+i+'"><span class="icon-box" style="background:'+(done?'#58A34C':(L.course?'#C0392B':'#0AA8A0'))+'">'+icon+'</span><span class="game-info"><span class="game-name">'+name+'</span><span class="game-meta">'+meta+'</span></span><span class="game-go">'+(done?('Đã xong'+(best!=null?' · '+best+'%':'')):'Viết ›')+'</span></button>'});
  area.innerHTML='<div class="draw-wrap">'
  +'<div class="tag" style="color:#0AA8A0">✍️ Luyện viết — '+LANGS[S.lang].name+'</div><h3 style="margin:4px 0">Bài viết — tập viết theo từng bài</h3>'
- +'<p class="dr-hint" style="margin-top:2px">Mỗi chữ 1 hàng 10 ô: <b>mẫu đậm → tô mờ dần → tự viết</b>, có phiên âm và thứ tự nét.'+(WR_COURSE[S.lang]?' Bài giáo trình có thêm <b>bảng chữ</b>: phiên âm, Hán Việt, nghĩa, cấu tạo bộ thủ.':'')+' Xong bài nào, bài đó có ✓.</p>'
- +'<div class="gscore" style="margin:10px 0 14px"><div class="gs ok"><small>✅ Bài viết đã xong</small><b>'+wrDoneCount()+'/'+list.length+'</b></div><div class="gs"><small>✒️ Mỗi chữ</small><b>1 hàng 10 ô</b></div></div>'
+ 
+ +'<div class="gscore" style="margin:10px 0 14px"><div class="gs ok"><small>✅ Bài viết đã xong</small><b>'+wrDoneCount()+'/'+list.length+'</b></div></div>'
  +'<div class="game-list">'+rows
  +'<button class="game-row" data-action="write-free"><span class="icon-box" style="background:#F5A83D">🎲</span><span class="game-info"><span class="game-name">Luyện tự do</span><span class="game-meta">4 từ ngẫu nhiên</span></span><span class="game-go">Viết ›</span></button>'
  +'</div></div>';
@@ -5404,8 +5408,8 @@ function wrBuildItems(deck,uniq){const items=[],seen=new Set(),C=WR_COURSE[S.lan
   items.push({ch:ch,wi:wi,ci:ci,syl:sy[ci]||'',hv:(w.hv&&w.hv[ci])||(C&&C.ch[ch]?C.ch[ch][0]:''),first:first});first=false})});return items}
 function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=document.getElementById('gameArea');const list=lessonIdx>=0?wrLessons():[];const L=lessonIdx>=0?list[lessonIdx]:null;const prev=WR||{};const items=wrBuildItems(deck,!!(L&&L.course));WR={deck:deck,items:items,ii:0,cell:1,cw:WR_CELLS*200,scores:items.map(()=>Array(WR_CELLS).fill(null)),strokes:[],cur:null,phase:'write',points:0,cellsDone:0,charsDone:0,lesson:lessonIdx,guideOp:prev.guideOp!=null?prev.guideOp:22,penType:wrPenPref(),dpr:1,dark:!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)};
  area.innerHTML='<div class="draw-wrap'+(wrFullPref()?' wr-full':'')+'" id="wrWrap">'
- +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><div class="tag" style="color:#0AA8A0">✍️ Luyện viết — '+LANGS[S.lang].name+(L?(L.course?' · Giáo trình Hán ngữ Q1':' · Bài viết '+L.k):' · Luyện tự do')+'</div><h3 style="margin:4px 0">'+(L?wrLessonName(L):'Luyện viết tự do')+'</h3></div></div>'
- +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ <span class="wr-sm-hide">Tất cả </span>bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'↙️ Thu nhỏ':'↗️ Toàn màn hình')+'</button><span class="tag" id="wrProg"></span></div>'
+ +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3 style="margin:2px 0 4px">'+(L?wrLessonName(L):'Luyện viết tự do')+'</h3></div></div>'
+ +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ <span class="wr-sm-hide">Tất cả </span>bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'↙️ Thu nhỏ':'↗️ Toàn màn hình')+'</button><span class="tag" id="wrPts"></span><span class="tag" id="wrProg"></span></div>'
  +'<div id="wrHud"></div>'
  +'<div id="wrWordBox"></div>'
  +'<div id="wrSg"></div>'
@@ -5414,7 +5418,7 @@ function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=doc
  +'<div class="wr-page"><div class="wr-page-head"><span>Thứ …… ngày …… tháng ……</span><span>Vở luyện viết</span></div><div id="wrRows"></div></div>'
  +'<div id="wrFb"></div>'
  +'<div class="draw-tools wr-sliders"><span class="dr-lab">Mẫu mờ</span><input type="range" id="wrGuideRange" min="0" max="45" value="'+WR.guideOp+'" aria-label="Độ mờ chữ mẫu"><span class="dr-lab" id="wrGuideVal">'+WR.guideOp+'%</span><span class="wr-zoom"><span class="dr-lab">Cỡ ô</span><button class="btn small secondary" data-action="write-zoom" data-d="-1" aria-label="Thu nhỏ ô">−</button><button class="btn small secondary" data-action="write-zoom" data-d="1" aria-label="Phóng to ô">+</button></span></div>'
- +'<p class="dr-hint">Mỗi chữ <b>1 hàng 10 ô</b>: ô đầu mẫu đậm, 3 ô sau mờ dần để tô, còn lại tự viết. Viết xong bấm <b>✔️ Kiểm tra nét</b>. Chạm nhanh 2 lần vào vở = hoàn tác nét vừa viết. Mẫu mờ 0% → XP ×1.5.<br><small>Thứ tự nét: KanjiVG (CC BY-SA 3.0, Ulrich Apel) · Make Me a Hanzi / Hanzi Writer (Arphic Public License).</small></p></div>';
+ +'<p class="dr-hint wr-credit">Thứ tự nét: KanjiVG (CC BY-SA 3.0, Ulrich Apel) · Make Me a Hanzi / Hanzi Writer (Arphic Public License).</p></div>';
  wrBuildPage();wrStickyTop();wrLoadStrokes();setTimeout(wrFitGuide,90);area.scrollIntoView({behavior:'smooth',block:'start'})}
 /* STROKE ORDER GUIDE: real stroke-by-stroke steps. Chinese = Hanzi Writer
    outlines (1024 box, y-up), Japanese = KanjiVG centre lines (109 box), both
@@ -5497,7 +5501,7 @@ function wrResCanvases(){if(!WR)return;const dpr=window.devicePixelRatio||1,base
  WR.items.forEach((_,ii)=>{const cv=document.getElementById('wrCanvas'+ii);if(!cv)return;let r=ii===WR.ii?base:1;if(full&&ii===WR.ii){const w=cv.getBoundingClientRect().width||WR.cw;r=Math.max(base,Math.min(3,dpr*w/WR.cw))}r=Math.round(r*100)/100;
   if(cv._res!==r){cv._res=r;cv.width=Math.round(WR.cw*r);cv.height=Math.round(200*r);wrRedraw(ii)}})}
 function wrFitGuide(){if(!WR)return;const line=document.getElementById('wrLine'+WR.ii)||document.getElementById('wrLine0');if(!line)return;const cw=(line.clientWidth||WR.cw)/WR_CELLS;document.querySelectorAll('.wr-guides').forEach(g=>{g.style.fontSize=Math.round(cw*0.74)+'px'})}
-function wrHudRender(){const h=document.getElementById('wrHud');if(!h||!WR)return;h.innerHTML='<div class="gscore" style="margin-top:10px"><div class="gs pts"><small>⭐ Điểm</small><b>'+WR.points+'</b></div><div class="gs ok"><small>✅ Ký tự xong</small><b>'+WR.charsDone+'/'+WR.items.length+'</b></div><div class="gs"><small>✒️ Ô đã chấm</small><b>'+WR.cellsDone+'</b></div></div>'}
+function wrHudRender(){const h=document.getElementById('wrPts');if(!h||!WR)return;h.textContent='⭐ '+WR.points}
 function wrSgRender(){const el=document.getElementById('wrSg');if(!el||!WR)return;const fnt=LANGS[S.lang].font;const it=WR.items[WR.ii];if(!it){el.innerHTML='';return}
  const drawn=WR.strokes.filter(s=>s.ii===WR.ii&&s.cell===WR.cell).length,target=wrStrokeCount(it.ch);
  const tag='📄 Hàng '+(WR.ii+1)+'/'+WR.items.length+' · Ô '+WR.cell+'/'+(WR_CELLS-1)+(WR.cell<=3?' (tô theo mẫu xám)':' (tự viết — không mẫu)')+' · ';
@@ -5567,14 +5571,14 @@ function wrCheck(){if(!WR||WR.phase!=='write')return;if(!WR.strokes.some(s=>s.ii
  const r=wrScoreCalc();WR.scores[WR.ii][WR.cell]=r.score;WR.points+=r.score;WR.cellsDone++;WR.phase='checked';wrGuideApply();
  let grade,cls;if(r.score>=85){grade='Xuất sắc! 🏆';cls='ok'}else if(r.score>=65){grade='Rất giống mẫu! 🎉';cls='ok'}else if(r.score>=45){grade='Khá ổn, gần giống rồi 👍';cls='mid'}else if(r.score>=25){grade='Đang tiến bộ 💪';cls='mid'}else{grade='Viết chậm lại, bám sát mẫu nhé 🌱';cls='low'}
  if(r.score>=50)sfx('correct');else{sfx('wrong');if(navigator.vibrate)navigator.vibrate(60)}
- const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+cls+'"><div class="dr-score">'+r.score+'<small>%</small></div><div class="dr-rtext"><b>'+grade+'</b> · +'+r.score+' điểm<br><span>Phủ mẫu '+r.cov+'% · Lệch mẫu '+r.stray+'%</span></div></div>';
+ const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+cls+'"><div class="dr-score">'+r.score+'<small>%</small></div><div class="dr-rtext"><b>'+grade+'</b> · +'+r.score+' điểm</div></div>';
  wrChipsRender();wrRowDotsRender();wrHudRender();wrCtlRender();wrSgRender()}
 function wrAdvance(){if(!WR)return;
  if(WR.cell<WR_CELLS-1){WR.cell++;wrSetCell();sfx('pop');return}
  const row=WR.scores[WR.ii].slice(1);const rowAvg=Math.round(row.reduce((a,b)=>a+(b||0),0)/row.length);const it=WR.items[WR.ii];const mem=WR.guideOp<=2;let xp=2+Math.round(rowAvg/100*4);if(mem)xp=Math.round(xp*1.5);WR.charsDone++;addXP(xp,'Luyện viết chữ: '+it.ch+' ('+rowAvg+'%)');if(rowAvg>=65){sfx('win');confetti(innerWidth/2,innerHeight/3,18)}else if(rowAvg>=40)sfx('correct');else sfx('flip');
  if(WR.ii>=WR.items.length-1){wrEnd();return}
  WR.ii++;WR.cell=1;wrSetCell();
- const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+(rowAvg>=65?'ok':rowAvg>=40?'mid':'low')+'"><div class="dr-score">'+rowAvg+'<small>%</small></div><div class="dr-rtext"><b>Xong hàng chữ “'+wrEsc(it.ch)+'”!</b> +'+xp+' XP'+(mem?' · 🧠 tắt mẫu tô ×1.5':'')+'<br><span>'+(WR.items[WR.ii].first?('Qua từ mới: <b>'+wrEsc(wrCurWord().f)+'</b> — '+wrEsc(wrCurWord().m)):'Sang hàng chữ tiếp theo trong cùng từ nhé ✍️')+'</span></div></div>'}
+ const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+(rowAvg>=65?'ok':rowAvg>=40?'mid':'low')+'"><div class="dr-score">'+rowAvg+'<small>%</small></div><div class="dr-rtext"><b>Xong hàng chữ “'+wrEsc(it.ch)+'”!</b> +'+xp+' XP'+(mem?' · 🧠 tắt mẫu tô ×1.5':'')+'</div></div>'}
 function wrSkip(){if(!WR||WR.phase!=='write')return;WR.scores[WR.ii][WR.cell]=0;WR.cellsDone++;sfx('flip');wrAdvance()}
 function wrUndo(byTap){if(!WR||WR.phase!=='write')return;for(let i=WR.strokes.length-1;i>=0;i--){if(WR.strokes[i].ii===WR.ii&&WR.strokes[i].cell===WR.cell){WR.strokes.splice(i,1);sfx('flip');wrRedraw(WR.ii);wrSgRender();if(byTap)toast('↩️ Đã hoàn tác nét vừa viết');return}}if(byTap)wrSgRender();toast('Chưa có nét nào để hoàn tác')}
 function wrClear(){if(!WR||WR.phase!=='write')return;const before=WR.strokes.length;WR.strokes=WR.strokes.filter(s=>!(s.ii===WR.ii&&s.cell===WR.cell));if(WR.strokes.length===before){toast('Ô này đang trống');return}sfx('flip');wrRedraw(WR.ii);wrSgRender();toast('Đã xóa ô — viết lại nhé')}
