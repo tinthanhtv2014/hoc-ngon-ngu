@@ -254,6 +254,20 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:28px;lin
 .wc-c{color:#C45448}
 .wc-rad{color:var(--ink);font-weight:800}
 .wr-full .wr-ctable{display:none}
+.wr-cellguide .wr-sk{width:100%;height:100%;display:block}
+.wr-sk.chip{width:30px;height:30px;display:block;color:var(--ink)}
+.wr-sk.tbl{width:34px;height:34px;display:block;color:var(--ink)}
+.wr-skex{width:40px!important;height:40px!important}
+.wr-skex-l{font-size:12px;font-weight:700;color:var(--muted);align-self:center;margin-left:4px}
+.py-h{margin:16px 2px 8px;font-size:15px}.py-h small{color:var(--muted);font-weight:700}
+.py-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.py-tones{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.py-card{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.py-card:active{transform:scale(.97)}
+.py-card b{font-size:22px;color:#C45448;line-height:1.1}
+.py-card span{font-size:20px;font-weight:700}
+.py-card small{font-size:11.5px;color:var(--muted);font-weight:700;text-align:center;line-height:1.3}
+.py-tone svg{width:44px;height:38px}.py-tone path{fill:none;stroke:#C45448;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
 .wr-chip small{font-size:11.5px!important;color:#C45448!important;font-weight:800}
 .wr2-steps{display:flex;gap:3px;align-items:flex-end;flex-wrap:wrap}
 .wr2-step{width:24px;height:27px;border-bottom:2px solid rgba(120,130,150,.35);display:grid;place-items:center;overflow:hidden}
@@ -4623,6 +4637,20 @@ const BOTS=[
  {name:"Ngọc Trâm",xp:1310,color:"#F2766B",lv:7},{name:"Văn Đức",xp:1080,color:"#8FA8E8",lv:6},{name:"Khánh Linh",xp:860,color:"#5FBFD6",lv:5},{name:"Quốc Bảo",xp:620,color:"#B79CED",lv:4}
 ];
 let S={lang:'en',xp:0,gems:0,streak:1,done:new Set(),certDone:new Set(),wrDone:new Set(),wrBest:{},exams:[],quests:{xp50:false,lesson:false,game:false,exam:false}};
+/* ===== SAVED PROGRESS — everything in S is kept in this device's
+   localStorage (sets as arrays), autosaved every few seconds and whenever
+   the app is hidden. Streak counts consecutive days; quests reset daily. ===== */
+const SAVE_KEY='hnnSave1';
+function dayKey(d){d=d||new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+(function loadState(){let d=null;try{d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null')}catch(e){}
+ const today=dayKey(),yest=dayKey(new Date(Date.now()-864e5));
+ if(d&&typeof d==='object'){['lang','xp','gems','streak','exams','wrBest'].forEach(k=>{if(d[k]!=null)S[k]=d[k]});['done','certDone','wrDone'].forEach(k=>{if(Array.isArray(d[k]))S[k]=new Set(d[k])});
+  if(d.day===today){if(d.quests)S.quests=d.quests}else S.streak=d.day===yest?(d.streak||0)+1:1}
+ S.day=today})();
+function saveState(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({lang:S.lang,xp:S.xp,gems:S.gems,streak:S.streak,day:S.day,exams:S.exams,wrBest:S.wrBest,quests:S.quests,done:[...S.done],certDone:[...S.certDone],wrDone:[...S.wrDone]}))}catch(e){}}
+setInterval(saveState,4000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){saveState();if(typeof wrSaveSession==='function')wrSaveSession()}});
+addEventListener('pagehide',()=>{saveState();if(typeof wrSaveSession==='function')wrSaveSession()});
 function allWords(lang){return LANGS[lang].lessons.flatMap(l=>l.words.map(w=>({f:w[0],p:w[1],m:w[2]})))}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 /* ===== SPEECH — iOS-safe text-to-speech =====
@@ -5343,23 +5371,48 @@ function wrCharsOf(w){return Array.from(w.f).filter(c=>c.trim().length)}
    each vocabulary lesson becomes 2 "Bài viết" of 4 words, so every language
    has 20 writing lessons following the same topics/order as the Học path. */
 function wrLessons(){const out=[];const C=WR_COURSE[S.lang];
- if(C){C.lessons.forEach(ls=>out.push({course:true,n:ls.n,title:ls.t,vi:ls.v,words:ls.w.map(w=>({f:w[0],p:w[1],m:w[2],cp:w[3]}))}));
-  out.push({course:true,radicals:true,n:0,title:'50 bộ thủ thông dụng',vi:'Bộ thủ',words:C.rad.map(r=>({f:r[1],p:r[2],m:'bộ '+r[3]+' — '+r[4],cp:[r[2]],hv:[r[3]],forms:r[0],rn:r[3],rm:r[4]}))})}
- let k=0;LANGS[S.lang].lessons.forEach((ls,li)=>{for(let p=0;p<2;p++){const ws=ls.words.slice(p*4,p*4+4).map(w=>({f:w[0],p:w[1],m:w[2]})).filter(w=>{const n=wrCharsOf(w).length;return n>=1&&n<=12});if(ws.length)out.push({li:li,part:p+1,k:++k,title:ls.title,words:ws})}});return out}
-function wrLessonName(L){return L.course?(L.radicals?'🧩 50 bộ thủ thông dụng':'Bài '+L.n+' · '+L.title+' — '+L.vi):'Bài viết '+L.k+' · '+L.title+' — Phần '+L.part}
-function wrKey(i){return S.lang+':'+i}
+ if(C){out.push({id:'py',intro:true,course:true,pinyin:true,title:'Phiên âm pinyin',vi:'Thanh điệu · thanh mẫu · vận mẫu',words:[]});
+  out.push({id:'net',intro:true,course:true,strokes:true,title:'Các nét cơ bản',vi:'Nét thanh, nét đậm',words:WR_STROKES.map((s,i)=>({f:s[1],p:s[2],m:s[0],cp:[s[2]],hv:[s[0].replace(/^Nét /,'').toLowerCase()],stroke:{c:s[3],i:s[4]},hint:s[5],ex:s[3]}))});
+  out.push({id:'rad',intro:true,course:true,radicals:true,n:0,title:'50 bộ thủ thông dụng',vi:'Bộ thủ',words:C.rad.map(r=>({f:r[1],p:r[2],m:'bộ '+r[3]+' — '+r[4],cp:[r[2]],hv:[r[3]],forms:r[0],rn:r[3],rm:r[4]}))});
+  C.lessons.forEach(ls=>out.push({id:'c'+ls.n,course:true,n:ls.n,title:ls.t,vi:ls.v,words:ls.w.map(w=>({f:w[0],p:w[1],m:w[2],cp:w[3]}))}))}
+ let k=0;LANGS[S.lang].lessons.forEach((ls,li)=>{for(let p=0;p<2;p++){const ws=ls.words.slice(p*4,p*4+4).map(w=>({f:w[0],p:w[1],m:w[2]})).filter(w=>{const n=wrCharsOf(w).length;return n>=1&&n<=12});if(ws.length)out.push({id:'a'+(k+1),li:li,part:p+1,k:++k,title:ls.title,words:ws})}});return out}
+function wrLessonName(L){return L.pinyin?'🔤 Phiên âm pinyin':L.strokes?'✍️ Các nét cơ bản':L.radicals?'🧩 50 bộ thủ thông dụng':L.course?'Bài '+L.n+' · '+L.title+' — '+L.vi:'Bài viết '+L.k+' · '+L.title+' — Phần '+L.part}
+/* BASIC STROKES — [tên, tên Hán, pinyin, chữ ví dụ, thứ tự nét trong chữ đó, cách viết] */
+const WR_STROKES=[
+ ['Nét ngang','横','héng','一',0,'Trái → phải, hơi nhích lên'],
+ ['Nét sổ','竖','shù','十',1,'Trên → dưới, thẳng đứng'],
+ ['Nét phẩy','撇','piě','人',0,'Phải trên → trái dưới, mảnh dần'],
+ ['Nét mác','捺','nà','人',1,'Trái trên → phải dưới, đậm dần rồi thu'],
+ ['Nét chấm','点','diǎn','六',0,'Trên → phải dưới, ngắn'],
+ ['Nét hất','提','tí','我',3,'Trái dưới → phải trên, nhanh và mảnh'],
+ ['Nét ngang gập','横折','héngzhé','口',1,'Ngang sang phải rồi gập thẳng xuống'],
+ ['Nét sổ móc','竖钩','shùgōu','小',0,'Sổ xuống, cuối móc sang trái'],
+ ['Nét ngang móc','横钩','hénggōu','买',0,'Ngang sang phải, móc xuống trái'],
+ ['Nét cong móc','弯钩','wāngōu','子',1,'Cong nhẹ xuống, cuối móc trái'],
+ ['Nét xiên móc','斜钩','xiégōu','我',4,'Xiên xuống phải, cuối móc lên'],
+ ['Nét nằm móc','卧钩','wògōu','心',1,'Cong nằm, móc lên trái'],
+ ['Nét sổ hất','竖提','shùtí','长',2,'Sổ xuống rồi hất lên phải'],
+ ['Nét ngang phẩy','横撇','héngpiě','又',0,'Ngang sang phải, phẩy xuống trái'],
+ ['Nét phẩy chấm','撇点','piědiǎn','女',0,'Phẩy xuống trái rồi chấm sang phải'],
+ ['Nét sổ gập','竖折','shùzhé','山',1,'Sổ xuống rồi gập ngang sang phải'],
+ ['Nét ngang gập móc','横折钩','héngzhégōu','月',1,'Ngang, gập xuống, móc trái'],
+ ['Nét sổ cong móc','竖弯钩','shùwāngōu','也',2,'Sổ, cong sang phải, móc lên'],
+ ['Nét ngang gập cong móc','横折弯钩','héngzhéwāngōu','九',1,'Ngang, gập, cong sang phải, móc lên']];
+function wrKey(i){const L=wrLessons()[i];return S.lang+':'+(L&&L.id||i)}
 function wrDoneCount(){const pre=S.lang+':';let n=0;S.wrDone.forEach(k=>{if(k.indexOf(pre)===0)n++});return n}
 function startWrite(){markGame();goTab('games');const area=document.getElementById('gameArea');const list=wrLessons();
  let rows='';
  list.forEach((L,i)=>{const done=S.wrDone.has(wrKey(i)),best=S.wrBest[wrKey(i)];
   const prevL=list[i-1];
-  if(L.course&&i===0)rows+='<div class="wr-sec">📘 Giáo trình Hán ngữ Quyển 1 — tập viết từng chữ</div>';
+  if(L.intro&&i===0)rows+='<div class="wr-sec">🧭 Nhập môn — học trước khi viết chữ</div>';
+  if(L.course&&!L.intro&&(!prevL||prevL.intro))rows+='<div class="wr-sec">📘 Giáo trình Hán ngữ Quyển 1 — tập viết từng chữ</div>';
   if(!L.course&&(!prevL||prevL.course))rows+='<div class="wr-sec">📗 Từ vựng theo bài học trong app</div>';
   const nch=L.course?wrBuildItems(L.words,true).length:0;
-  const icon=done?'✓':(L.course?(L.radicals?'🧩':L.n):L.k);
-  const name=L.course?(L.radicals?'50 bộ thủ thông dụng':'Bài '+L.n+' · <span style="font-family:'+LANGS[S.lang].font+'">'+wrEsc(L.title)+'</span> — '+wrEsc(L.vi)):'Bài viết '+L.k+' · '+wrEsc(L.title)+' — Phần '+L.part;
-  const meta=L.course?(nch+' chữ: <span style="font-family:'+LANGS[S.lang].font+'">'+wrEsc(Array.from(new Set(L.words.map(w=>w.f).join(''))).filter(c=>c.trim()).slice(0,14).join(' '))+(nch>14?' …':'')+'</span>'):'<span style="font-family:'+LANGS[S.lang].font+'">'+L.words.map(w=>wrEsc(w.f)).join(' · ')+'</span>';
-  rows+='<button class="game-row" data-action="write-lesson" data-i="'+i+'"><span class="icon-box" style="background:'+(done?'#58A34C':(L.course?'#C0392B':'#0AA8A0'))+'">'+icon+'</span><span class="game-info"><span class="game-name">'+name+'</span><span class="game-meta">'+meta+'</span></span><span class="game-go">'+(done?('Đã xong'+(best!=null?' · '+best+'%':'')):'Viết ›')+'</span></button>'});
+  const sv=wrSaved(),going=sv&&sv.key===wrKey(i)&&!done;
+  const icon=done?'✓':(L.pinyin?'🔤':L.strokes?'✍️':L.radicals?'🧩':L.course?L.n:L.k);
+  const name=L.intro?wrLessonName(L).replace(/^\S+ /,'')+' — '+wrEsc(L.vi):L.course?(L.radicals?'50 bộ thủ thông dụng':'Bài '+L.n+' · <span style="font-family:'+LANGS[S.lang].font+'">'+wrEsc(L.title)+'</span> — '+wrEsc(L.vi)):'Bài viết '+L.k+' · '+wrEsc(L.title)+' — Phần '+L.part;
+  const meta=L.pinyin?'5 thanh điệu · 23 thanh mẫu · 36 vận mẫu — bấm để nghe':L.strokes?WR_STROKES.length+' nét: '+WR_STROKES.slice(0,8).map(s=>s[1]).join(' · ')+' …':L.course?(nch+' chữ: <span style="font-family:'+LANGS[S.lang].font+'">'+wrEsc(Array.from(new Set(L.words.map(w=>w.f).join(''))).filter(c=>c.trim()).slice(0,14).join(' '))+(nch>14?' …':'')+'</span>'):'<span style="font-family:'+LANGS[S.lang].font+'">'+L.words.map(w=>wrEsc(w.f)).join(' · ')+'</span>';
+  rows+='<button class="game-row" data-action="write-lesson" data-i="'+i+'"><span class="icon-box" style="background:'+(done?'#58A34C':(L.intro?'#7C3AED':L.course?'#C0392B':'#0AA8A0'))+'">'+icon+'</span><span class="game-info"><span class="game-name">'+name+'</span><span class="game-meta">'+meta+'</span></span><span class="game-go">'+(done?('Đã xong'+(best!=null?' · '+best+'%':'')):going?('Viết tiếp '+(sv.ii+1)+'/'+sv.n+' ›'):(L.pinyin?'Học ›':'Viết ›'))+'</span></button>'});
  area.innerHTML='<div class="draw-wrap">'
  +'<div class="tag" style="color:#0AA8A0">✍️ Luyện viết — '+LANGS[S.lang].name+'</div><h3 style="margin:4px 0">Bài viết — tập viết theo từng bài</h3>'
  
@@ -5368,7 +5421,31 @@ function startWrite(){markGame();goTab('games');const area=document.getElementBy
  +'<button class="game-row" data-action="write-free"><span class="icon-box" style="background:#F5A83D">🎲</span><span class="game-info"><span class="game-name">Luyện tự do</span><span class="game-meta">4 từ ngẫu nhiên</span></span><span class="game-go">Viết ›</span></button>'
  +'</div></div>';
  area.scrollIntoView({behavior:'smooth',block:'start'})}
-function wrStartLesson(i){const L=wrLessons()[i];if(!L)return;wrBeginSession(L.words,i)}
+function wrStartLesson(i){const L=wrLessons()[i];if(!L)return;if(L.pinyin){wrPinyinPage(i);return}wrBeginSession(L.words,i);wrRestoreSession(i)}
+/* PINYIN — [phiên âm, chữ ví dụ, đọc gần giống tiếng Việt] ; tones: [âm, chữ, tên, mô tả, đường cao độ SVG] */
+const WR_PY={
+ tones:[['mā','妈','Thanh 1','cao, đều (ngang)','M4 8 H36'],['má','麻','Thanh 2','đi lên (gần dấu sắc)','M4 26 L36 6'],['mǎ','马','Thanh 3','xuống rồi lên (gần dấu hỏi)','M4 18 L18 32 L36 10'],['mà','骂','Thanh 4','rơi mạnh (gần dấu huyền, dứt khoát)','M4 6 L36 32'],['ma','吗','Thanh nhẹ','ngắn, nhẹ','M14 22 h10']],
+ ini:[['b','八','p (không bật hơi)'],['p','怕','p bật hơi'],['m','妈','m'],['f','发','ph'],['d','大','t (không bật hơi)'],['t','他','th'],['n','你','n'],['l','拉','l'],['g','哥','c/k'],['k','可','kh bật hơi'],['h','好','h (hơi khàn)'],['j','鸡','ch (chi)'],['q','七','ch bật hơi'],['x','西','x'],['zh','中','tr (uốn lưỡi)'],['ch','吃','tr bật hơi'],['sh','是','s (uốn lưỡi)'],['r','人','r/gi (uốn lưỡi)'],['z','字','ch đầu lưỡi (ts)'],['c','菜','ts bật hơi'],['s','四','x (xư)'],['y','一','d/i'],['w','五','u/w']],
+ fin:[['a','啊','a'],['o','哦','ô (pô)'],['e','饿','ơ'],['i','衣','i'],['u','乌','u'],['ü','鱼','uy (tròn môi)'],['ai','爱','ai'],['ei','黑','ây'],['ao','好','ao'],['ou','欧','âu'],['an','安','an'],['en','门','ân'],['ang','忙','ang'],['eng','冷','âng'],['ong','中','ung'],['er','二','ơ (uốn lưỡi)'],['ia','家','i-a'],['ie','谢','iê'],['iao','小','i-ao'],['iu','九','iêu'],['ian','见','iên'],['in','您','in'],['iang','两','i-ang'],['ing','星','inh'],['iong','用','i-ung'],['ua','话','oa'],['uo','我','ua (uô)'],['uai','快','oai'],['ui','贵','uây'],['uan','换','oan'],['un','春','uân'],['uang','黄','oang'],['ueng','翁','uâng'],['üe','学','uê'],['üan','远','oen'],['ün','云','uyn']]};
+function wrPinyinPage(i){markGame();goTab('games');const area=document.getElementById('gameArea');S.wrDone.add(wrKey(i));saveState();const fnt=LANGS[S.lang].font;
+ const card=(a,c,d,cls)=>'<button class="py-card'+(cls?' '+cls:'')+'" data-action="py-say" data-t="'+c+'"><b>'+a+'</b><span style="font-family:'+fnt+'">'+c+'</span><small>'+d+'</small></button>';
+ area.innerHTML='<div class="draw-wrap py-page"><h3 style="margin:2px 0 6px">🔤 Phiên âm pinyin</h3><div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ Bài viết</button></div>'
+ +'<h4 class="py-h">Thanh điệu</h4><div class="py-tones">'+WR_PY.tones.map(x=>'<button class="py-card py-tone" data-action="py-say" data-t="'+x[1]+'"><svg viewBox="0 0 40 38" aria-hidden="true"><path d="'+x[4]+'"/></svg><b>'+x[0]+'</b><span style="font-family:'+fnt+'">'+x[1]+'</span><small>'+x[2]+' · '+x[3]+'</small></button>').join('')+'</div>'
+ +'<h4 class="py-h">Thanh mẫu <small>(phụ âm đầu)</small></h4><div class="py-grid">'+WR_PY.ini.map(x=>card(x[0],x[1],x[2])).join('')+'</div>'
+ +'<h4 class="py-h">Vận mẫu <small>(vần)</small></h4><div class="py-grid">'+WR_PY.fin.map(x=>card(x[0],x[1],x[2])).join('')+'</div></div>';
+ area.scrollIntoView({behavior:'smooth',block:'start'})}
+const WR_SAVE='hnnWR1';
+function wrSaved(){try{return JSON.parse(localStorage.getItem(WR_SAVE)||'null')}catch(e){return null}}
+function wrSaveSession(){if(!WR||WR.lesson==null||WR.lesson<0||WR.phase==='end'||(!WR.cellsDone&&!WR.strokes.length))return;const st=WR.strokes.filter(s=>s!==WR.cur).map(s=>[s.ii,s.cell,s.pen||'muc',s.pts.flatMap(q=>[Math.round(q.x),Math.round(q.y),Math.round((q.p||.5)*100)])]);
+ try{localStorage.setItem(WR_SAVE,JSON.stringify({key:wrKey(WR.lesson),ii:WR.ii,cell:WR.cell,scores:WR.scores,points:WR.points,cellsDone:WR.cellsDone,charsDone:WR.charsDone,n:WR.items.length,st:st}))}catch(e){try{localStorage.removeItem(WR_SAVE)}catch(_){}}}
+function wrClearSession(){try{localStorage.removeItem(WR_SAVE)}catch(e){}}
+function wrRestoreSession(i){const d=wrSaved();if(!d||d.key!==wrKey(i)||!WR||d.n!==WR.items.length)return;
+ Object.assign(WR,{ii:d.ii,cell:d.cell,scores:d.scores,points:d.points,cellsDone:d.cellsDone,charsDone:d.charsDone});
+ WR.strokes=(d.st||[]).map(s=>{const pts=[];for(let k=0;k<s[3].length;k+=3)pts.push({x:s[3][k],y:s[3][k+1],p:s[3][k+2]/100});return{ii:s[0],cell:s[1],pen:s[2],pts:pts}});
+ WR.items.forEach((_,ii)=>wrRedraw(ii));wrSetCell();
+ if(WR.scores[WR.ii][WR.cell]!=null){WR.phase='checked';wrGuideApply();wrCtlRender()}
+ wrHudRender();const b=document.getElementById('wrRestart');if(b)b.hidden=false;toast('↩️ Viết tiếp từ ký tự '+(WR.ii+1)+'/'+WR.items.length)}
+function wrRestart(){if(!WR||WR.lesson==null||WR.lesson<0)return;if(!confirm('Viết lại bài này từ đầu?'))return;wrClearSession();wrStartLesson(WR.lesson)}
 /* Course lesson table (shown above the notebook): word, pinyin, Hán Việt,
    meaning and how each character is built (main radical in bold). */
 function wrCompName(c){const C=WR_COURSE[S.lang];const n=C&&C.comp[c];return n?'<span class="wc-g">'+wrEsc(c)+'</span> '+wrEsc(n):'<span class="wc-g">'+wrEsc(c)+'</span>'}
@@ -5376,10 +5453,11 @@ function wrBuildOf(ch){const C=WR_COURSE[S.lang];const d=C&&C.ch[ch];if(!d)retur
  if(!parts.length)return C.comp[ch]?'là bộ thủ: '+wrCompName(ch):'chữ đơn (tượng hình)';
  return parts.map(x=>x===d[1]?'<b class="wc-rad">bộ '+wrCompName(x)+'</b>':wrCompName(x)).join(' + ')+(d[1]&&parts.indexOf(d[1])<0&&d[1]!==ch?' · <b class="wc-rad">bộ '+wrCompName(d[1])+'</b>':'')}
 function wrCourseTable(L){const fnt=LANGS[S.lang].font;const C=WR_COURSE[S.lang];let h='';
- if(L.radicals){h='<table class="wr-ct"><thead><tr><th>#</th><th>Bộ</th><th>Phiên âm</th><th>Tên</th><th>Nghĩa</th></tr></thead><tbody>'+L.words.map((w,i)=>'<tr><td>'+(i+1)+'</td><td class="wc-f" style="font-family:'+fnt+'">'+wrEsc(w.forms)+'</td><td>'+wrEsc(w.p)+'</td><td>bộ '+wrEsc(w.rn)+'</td><td>'+wrEsc(w.rm)+'</td></tr>').join('')+'</tbody></table>'}
+ if(L.strokes){h='<table class="wr-ct"><thead><tr><th>#</th><th>Nét</th><th>Tên</th><th>Phiên âm</th><th>Cách viết</th><th>Ví dụ</th></tr></thead><tbody>'+L.words.map((w,i)=>'<tr><td>'+(i+1)+'</td><td class="wc-f">'+wrSkSvg(w.stroke,'tbl')+'</td><td><b>'+wrEsc(w.m)+'</b> <span style="font-family:'+fnt+'">'+wrEsc(w.f)+'</span></td><td>'+wrEsc(w.p)+'</td><td>'+wrEsc(w.hint)+'</td><td class="wc-f" style="font-family:'+fnt+'">'+wrEsc(w.ex)+'</td></tr>').join('')+'</tbody></table>'}
+ else if(L.radicals){h='<table class="wr-ct"><thead><tr><th>#</th><th>Bộ</th><th>Phiên âm</th><th>Tên</th><th>Nghĩa</th></tr></thead><tbody>'+L.words.map((w,i)=>'<tr><td>'+(i+1)+'</td><td class="wc-f" style="font-family:'+fnt+'">'+wrEsc(w.forms)+'</td><td>'+wrEsc(w.p)+'</td><td>bộ '+wrEsc(w.rn)+'</td><td>'+wrEsc(w.rm)+'</td></tr>').join('')+'</tbody></table>'}
  else{h='<table class="wr-ct"><thead><tr><th>Chữ</th><th>Phiên âm</th><th>Hán Việt</th><th>Nghĩa</th><th>Cấu tạo</th></tr></thead><tbody>'+L.words.map(w=>{const chs=Array.from(new Set(wrCharsOf(w)));
   return '<tr><td class="wc-f" style="font-family:'+fnt+'">'+wrEsc(w.f)+'</td><td>'+wrEsc(w.p)+'</td><td>'+wrCharsOf(w).map(c=>C.ch[c]?C.ch[c][0]:'').join(' ')+'</td><td>'+wrEsc(w.m)+'</td><td class="wc-b">'+chs.map(c=>(chs.length>1?'<span class="wc-g wc-c" style="font-family:'+fnt+'">'+wrEsc(c)+'</span>: ':'')+wrBuildOf(c)).join('<br>')+'</td></tr>'}).join('')+'</tbody></table>'}
- return '<details class="wr-ctable" open><summary>📋 Bảng chữ '+(L.radicals?'— 50 bộ thủ':'bài '+L.n)+' <small>('+wrBuildItems(L.words,true).length+' chữ để viết)</small></summary><div class="wr-ct-in">'+h+'</div></details>'}
+ return '<details class="wr-ctable" open><summary>📋 '+(L.strokes?'Bảng nét cơ bản':'Bảng chữ '+(L.radicals?'— 50 bộ thủ':'bài '+L.n))+' <small>('+wrBuildItems(L.words,true).length+(L.strokes?' nét':' chữ')+' để viết)</small></summary><div class="wr-ct-in">'+h+'</div></details>'}
 function wrStartFree(){const C=WR_COURSE[S.lang];const pool=shuffle(allWords(S.lang).concat(C?C.lessons.flatMap(ls=>ls.w.map(w=>({f:w[0],p:w[1],m:w[2],cp:w[3]}))):[]));let deck=pool.filter(w=>{const n=wrCharsOf(w).length;return n>=1&&n<=8}).slice(0,4);if(deck.length<4)deck=deck.concat(pool.filter(w=>deck.indexOf(w)<0).slice(0,4-deck.length));wrBeginSession(deck,-1)}
 function wrSyllables(w){const chs=wrCharsOf(w);if(w.cp&&w.cp.length===chs.length)return w.cp;if(!w.p)return chs.map(()=> '');const parts=String(w.p).trim().split(/\s+/);if(parts.length===chs.length&&S.lang!=='ko')return parts.map(s=>s.toLowerCase());
  if(S.lang==='zh'){const sy=wrPinyinSplit(w.p);if(sy.length===chs.length)return sy.map(s=>s.toLowerCase())}
@@ -5404,12 +5482,12 @@ function wrKoRoman(ch){const c=ch.codePointAt(0);if(c<0xAC00||c>0xD7A3)return ''
 const WR_PY_V='aeiouüvāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ';
 const WR_PY_RE=new RegExp('(?:zh|ch|sh|[bpmfdtnlgkhjqxrzcsyw])?['+WR_PY_V+']+(?:ng(?!['+WR_PY_V+'])|n(?!['+WR_PY_V+'g])|r(?!['+WR_PY_V+']))?','gi');
 function wrPinyinSplit(p){return String(p).split(/[\s'’-]+/).reduce((a,part)=>a.concat(part.match(WR_PY_RE)||[]),[])}
-function wrBuildItems(deck,uniq){const items=[],seen=new Set(),C=WR_COURSE[S.lang];deck.forEach((w,wi)=>{const chs=wrCharsOf(w),sy=wrSyllables(w);let first=true;chs.forEach((ch,ci)=>{if(uniq){if(seen.has(ch))return;seen.add(ch)}
+function wrBuildItems(deck,uniq){const items=[],seen=new Set(),C=WR_COURSE[S.lang];deck.forEach((w,wi)=>{if(w.stroke){items.push({ch:w.f,sk:w.stroke,wi:wi,ci:0,syl:w.cp[0],hv:w.hv[0],first:true});return}const chs=wrCharsOf(w),sy=wrSyllables(w);let first=true;chs.forEach((ch,ci)=>{if(uniq){if(seen.has(ch))return;seen.add(ch)}
   items.push({ch:ch,wi:wi,ci:ci,syl:sy[ci]||'',hv:(w.hv&&w.hv[ci])||(C&&C.ch[ch]?C.ch[ch][0]:''),first:first});first=false})});return items}
 function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=document.getElementById('gameArea');const list=lessonIdx>=0?wrLessons():[];const L=lessonIdx>=0?list[lessonIdx]:null;const prev=WR||{};const items=wrBuildItems(deck,!!(L&&L.course));WR={deck:deck,items:items,ii:0,cell:1,cw:WR_CELLS*200,scores:items.map(()=>Array(WR_CELLS).fill(null)),strokes:[],cur:null,phase:'write',points:0,cellsDone:0,charsDone:0,lesson:lessonIdx,guideOp:prev.guideOp!=null?prev.guideOp:22,penType:wrPenPref(),dpr:1,dark:!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)};
  area.innerHTML='<div class="draw-wrap'+(wrFullPref()?' wr-full':'')+'" id="wrWrap">'
  +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3 style="margin:2px 0 4px">'+(L?wrLessonName(L):'Luyện viết tự do')+'</h3></div></div>'
- +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ <span class="wr-sm-hide">Tất cả </span>bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'↙️ Thu nhỏ':'↗️ Toàn màn hình')+'</button><span class="tag" id="wrPts"></span><span class="tag" id="wrProg"></span></div>'
+ +'<div class="wr-topbtns"><button class="btn small secondary" data-action="write-menu">‹ <span class="wr-sm-hide">Tất cả </span>bài viết</button><button class="btn small secondary" data-action="write-full" id="wrFullBtn">'+(wrFullPref()?'↙️ Thu nhỏ':'↗️ Toàn màn hình')+'</button><button class="btn small secondary" data-action="write-restart" id="wrRestart" hidden title="Viết lại từ đầu">↺<span class="wr-sm-hide"> Viết lại</span></button><span class="tag" id="wrPts"></span><span class="tag" id="wrProg"></span></div>'
  +'<div id="wrHud"></div>'
  +'<div id="wrWordBox"></div>'
  +'<div id="wrSg"></div>'
@@ -5429,8 +5507,13 @@ const WR_SD={};
 function wrLoadStrokes(){const lg=S.lang;if((lg!=='zh'&&lg!=='ja')||WR_SD[lg])return;WR_SD[lg]='loading';
  fetch('assets/strokes/'+lg+'.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{WR_SD[lg]=d;if(WR&&S.lang===lg)wrRenderSteps()}).catch(()=>{WR_SD[lg]=null})}
 function wrStrokeData(ch){const d=WR_SD[S.lang];return d&&typeof d==='object'?d[ch]||null:null}
-function wrStrokeCount(ch){const sd=wrStrokeData(ch);return sd?sd.length:charStrokes(ch)}
-function wrRenderSteps(){if(!WR)return;WR.items.forEach((it,ii)=>{const row=document.getElementById('wrItem'+ii);if(!row)return;const st=row.querySelector('.wr2-steps');if(st)st.innerHTML=wrStepsHTML(it.ch);const ns=row.querySelector('.wr2-nstrokes');const n=wrStrokeCount(it.ch);if(ns&&n)ns.textContent=n+' nét · thứ tự nét minh họa'});wrSgRender()}
+function wrStrokeCount(ch){if(WR&&WR.items[WR.ii]&&WR.items[WR.ii].sk&&WR.items[WR.ii].ch===ch)return 1;const sd=wrStrokeData(ch);return sd?sd.length:charStrokes(ch)}
+/* one stroke of an example character as an SVG (model/trace cells, chips) */
+function wrSkSvg(sk,cls){const sp=wrStrokeData(sk.c);if(!sp||!sp[sk.i])return '';return '<svg viewBox="0 0 1024 1024" class="wr-sk '+(cls||'')+'" aria-hidden="true"><g transform="translate(0 900) scale(1 -1)"><path d="'+sp[sk.i]+'" fill="currentColor"/></g></svg>'}
+function wrGuideInner(it){return it.sk?wrSkSvg(it.sk):wrEsc(it.ch)}
+/* the example character with the stroke being practised in red */
+function wrSkExample(sk){const sp=wrStrokeData(sk.c);if(!sp)return '';return '<span class="wr2-step wr-skex"><svg viewBox="0 0 1024 1024" class="wr-sv zh" aria-hidden="true"><g transform="translate(0 900) scale(1 -1)">'+sp.map((d,k)=>'<path class="'+(k===sk.i?'nw':'od')+'" d="'+d+'"/>').join('')+'</g></svg></span><span class="wr-skex-l">trong chữ <b style="font-family:'+LANGS[S.lang].font+'">'+wrEsc(sk.c)+'</b></span>'}
+function wrRenderSteps(){if(!WR)return;const tb=document.querySelector('.wr-ctable');if(tb&&WR.lesson>=0){const L=wrLessons()[WR.lesson];if(L&&L.strokes){const op=tb.open;tb.outerHTML=wrCourseTable(L);const nt=document.querySelector('.wr-ctable');if(nt)nt.open=op}}if(WR.items.some(it=>it.sk))wrChipsRender();WR.items.forEach((it,ii)=>{const row=document.getElementById('wrItem'+ii);if(!row)return;const st=row.querySelector('.wr2-steps');if(st)st.innerHTML=it.sk?wrSkExample(it.sk):wrStepsHTML(it.ch);if(it.sk)row.querySelectorAll('.wr-cellguide').forEach(g=>{g.innerHTML=wrGuideInner(it)});const ns=row.querySelector('.wr2-nstrokes');const n=wrStrokeCount(it.ch);if(ns&&n)ns.textContent=n+' nét · thứ tự nét minh họa'});wrSgRender()}
 function wrStepSvg(paths,k,kind){let g='';for(let i=0;i<k;i++){const cls=i===k-1?'nw':'od';g+=kind==='zh'?'<path class="'+cls+'" d="'+paths[i]+'"/>':'<path class="'+cls+'" d="'+paths[i]+'"/>'}
  return kind==='zh'?'<svg viewBox="0 0 1024 1024" class="wr-sv zh" aria-hidden="true"><g transform="translate(0 900) scale(1 -1)">'+g+'</g></svg>':'<svg viewBox="0 0 109 109" class="wr-sv ja" aria-hidden="true">'+g+'</svg>'}
 function wrKoSteps(ch){const c=ch.codePointAt(0);if(c<0xAC00||c>0xD7A3)return null;const s=c-0xAC00,ini=Math.floor(s/588),med=Math.floor((s%588)/28),fin=s%28;
@@ -5449,13 +5532,13 @@ function wrBuildPage(){const box=document.getElementById('wrRows');if(!box||!WR)
   html+='<div class="wr-item" id="wrItem'+ii+'">';
   if(it.first)html+='<div class="wr2-word'+(ii===0?' first':'')+'"><span class="wf" style="font-family:'+fnt+'">'+wrEsc(w.f)+'</span><button class="speak" data-action="write-speak-word" data-i="'+it.wi+'" aria-label="Nghe phát âm từ">🔊</button><span class="wm">'+(w.p?wrEsc(w.p)+' · ':'')+wrEsc(w.m)+'</span></div>';
   const n=wrStrokeCount(it.ch);
-  html+='<div class="wr2-strip"><span class="wr2-py">'+wrEsc(it.syl||'')+(it.hv?'<small class="wr2-hv">'+wrEsc(it.hv)+'</small>':'')+'</span><span class="wr2-steps">'+wrStepsHTML(it.ch)+'</span>'+(n?'<span class="wr2-nstrokes">'+n+' nét · thứ tự nét minh họa</span>':'')+'</div>'
+  html+='<div class="wr2-strip"><span class="wr2-py">'+wrEsc(it.syl||'')+(it.hv?'<small class="wr2-hv">'+wrEsc(it.hv)+'</small>':'')+'</span><span class="wr2-steps">'+(it.sk?wrSkExample(it.sk):wrStepsHTML(it.ch))+'</span>'+(n?'<span class="wr2-nstrokes">'+n+' nét · thứ tự nét minh họa</span>':'')+'</div>'
   +'<div class="wr-scroll" id="wrScroll'+ii+'"><div class="wr-line" id="wrLine'+ii+'" style="width:100%;aspect-ratio:'+WR_CELLS+'/1">'
   +'<svg class="wr-grid" viewBox="0 0 '+(WR_CELLS*200)+' 200" preserveAspectRatio="none" aria-hidden="true">'+grid+'</svg>'
   +'<div class="wr-hl" id="wrHl'+ii+'" style="display:none"></div>'
   +'<div class="wr-guides" id="wrGuides'+ii+'">'
-  +'<div class="wr-cellguide model" data-r="'+ii+'" data-c="0" style="left:0;width:'+(100/WR_CELLS)+'%;font-family:'+fnt+'">'+wrEsc(it.ch)+'</div>'
-  +[1,2,3].map(c=>'<div class="wr-cellguide trace" data-r="'+ii+'" data-c="'+c+'" style="left:'+(c*100/WR_CELLS)+'%;width:'+(100/WR_CELLS)+'%;font-family:'+fnt+'">'+wrEsc(it.ch)+'</div>').join('')
+  +'<div class="wr-cellguide model" data-r="'+ii+'" data-c="0" style="left:0;width:'+(100/WR_CELLS)+'%;font-family:'+fnt+'">'+wrGuideInner(it)+'</div>'
+  +[1,2,3].map(c=>'<div class="wr-cellguide trace" data-r="'+ii+'" data-c="'+c+'" style="left:'+(c*100/WR_CELLS)+'%;width:'+(100/WR_CELLS)+'%;font-family:'+fnt+'">'+wrGuideInner(it)+'</div>').join('')
   +'</div>'
   +'<canvas class="wr-canvas" id="wrCanvas'+ii+'" width="'+(WR_CELLS*200)+'" height="200"></canvas></div></div></div>'});
  box.innerHTML=html;
@@ -5463,10 +5546,10 @@ function wrBuildPage(){const box=document.getElementById('wrRows');if(!box||!WR)
  wrSetCell()}
 function wrGuideApply(){if(!WR)return;document.querySelectorAll('.wr-cellguide').forEach(el=>{const r=+el.dataset.r,c=+el.dataset.c;if(c===0){el.style.opacity='1';return}const done=WR.scores[r]&&WR.scores[r][c]!=null;const cur=(r===WR.ii&&c===WR.cell);el.style.opacity=done?'0':String(Math.min(1,(WR_CELL_F[c]||0)*(WR.guideOp/22)*(cur?1:0.7)))})}
 function wrCurWord(){return WR.deck[WR.items[WR.ii].wi]}
-function wrWordRender(){const box=document.getElementById('wrWordBox');if(!box||!WR)return;const w=wrCurWord();box.innerHTML='<div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:8px"><span style="font-size:24px;font-weight:900;font-family:'+LANGS[S.lang].font+'">'+wrEsc(w.f)+'</span><button class="speak" data-action="write-hear" aria-label="Nghe phát âm từ">🔊</button><span style="font-size:15px;font-weight:700;color:var(--muted)">'+(w.p?wrEsc(w.p)+' · ':'')+wrEsc(w.m)+'</span></div><div class="wr-chips" id="wrChips"></div><div class="wr-rowdots" id="wrRowDots"></div>';wrChipsRender();wrRowDotsRender();const pr=document.getElementById('wrProg');if(pr)pr.textContent='Ký tự '+(WR.ii+1)+' / '+WR.items.length+' • Ô '+WR.cell+'/'+(WR_CELLS-1)}
+function wrWordRender(){const box=document.getElementById('wrWordBox');if(!box||!WR)return;const w=wrCurWord();box.innerHTML='<div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:8px"><span style="font-size:24px;font-weight:900;font-family:'+LANGS[S.lang].font+'">'+wrEsc(w.f)+'</span><button class="speak" data-action="write-hear" aria-label="Nghe phát âm từ">🔊</button><span style="font-size:15px;font-weight:700;color:var(--muted)">'+(w.p?wrEsc(w.p)+' · ':'')+wrEsc(w.m)+'</span></div><div class="wr-chips" id="wrChips"></div><div class="wr-rowdots" id="wrRowDots"></div>';wrChipsRender();wrRowDotsRender();const pr=document.getElementById('wrProg');if(pr)pr.innerHTML='<span class="wr-sm-hide">Ký tự </span>'+(WR.ii+1)+'/'+WR.items.length+' • Ô '+WR.cell+'/'+(WR_CELLS-1)}
 function wrRowDotsRender(){const d=document.getElementById('wrRowDots');if(!d||!WR)return;let h='<span class="wr-rdlab">Ô</span>';for(let c=1;c<WR_CELLS;c++){const sc=WR.scores[WR.ii][c];const done=sc!=null;h+='<span class="wr-rdot'+(done?' done':c===WR.cell?' cur':'')+'">'+(done?'✓':c)+'</span>'}d.innerHTML=h}
-function wrChipsRender(){const c=document.getElementById('wrChips');if(!c||!WR)return;const wi=WR.items[WR.ii].wi;c.innerHTML=WR.items.map((it,ii)=>({it:it,ii:ii})).filter(o=>o.it.wi===wi).map(o=>{const row=WR.scores[o.ii];const done=row.slice(1).every(s=>s!=null);let cls='',lab=o.it.syl||String(o.it.ci+1);if(done){const avg=Math.round(row.slice(1).reduce((a,b)=>a+b,0)/(WR_CELLS-1));cls=avg>=65?'ok':avg>=40?'mid':'low';lab=avg+'%'}else if(o.ii===WR.ii)cls='cur';return '<div class="wr-chip '+cls+'"><span style="font-family:'+LANGS[S.lang].font+'">'+wrEsc(o.it.ch)+'</span><small>'+lab+'</small></div>'}).join('')}
-function wrSetCell(){if(!WR)return;WR.cur=null;WR.phase='write';
+function wrChipsRender(){const c=document.getElementById('wrChips');if(!c||!WR)return;const wi=WR.items[WR.ii].wi;c.innerHTML=WR.items.map((it,ii)=>({it:it,ii:ii})).filter(o=>o.it.wi===wi).map(o=>{const row=WR.scores[o.ii];const done=row.slice(1).every(s=>s!=null);let cls='',lab=o.it.syl||String(o.it.ci+1);if(done){const avg=Math.round(row.slice(1).reduce((a,b)=>a+b,0)/(WR_CELLS-1));cls=avg>=65?'ok':avg>=40?'mid':'low';lab=avg+'%'}else if(o.ii===WR.ii)cls='cur';return '<div class="wr-chip '+cls+'"><span style="font-family:'+LANGS[S.lang].font+'">'+(o.it.sk?wrSkSvg(o.it.sk,'chip'):wrEsc(o.it.ch))+'</span><small>'+lab+'</small></div>'}).join('')}
+function wrSetCell(){if(!WR)return;WR.cur=null;WR.phase='write';setTimeout(wrSaveSession,0);
  WR.items.forEach((_,ii)=>{const row=document.getElementById('wrItem'+ii);if(row){row.classList.toggle('cur',ii===WR.ii);row.classList.toggle('after',ii>WR.ii)}const hl=document.getElementById('wrHl'+ii);if(hl){if(ii===WR.ii){hl.style.display='block';hl.style.left=(WR.cell*100/WR_CELLS)+'%';hl.style.width=(100/WR_CELLS)+'%'}else hl.style.display='none'}});
  wrGuideApply();wrFitGuide();const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='';wrWordRender();wrHudRender();wrSgRender();wrCtlRender();
  if(wrIsFull()){wrFullLayout();return}
@@ -5544,6 +5627,7 @@ const WR_PENS=[
  {id:'muc',name:'Bút mực',short:'Mực',ic:'✒️',var:true,w:(p,d)=>Math.max(1.5,Math.min(14,9*(0.45+p*1.15)/(1+d*0.02))),color:['#1E2A4A','#DCE6F7'],sw:'<path d="M3 11C9 5 17 9 23 8S31 4 33 5C30 8 25 11 20 11S10 12 3 11Z" fill="#1E2A4A"/>'},
  {id:'long',name:'Bút lông',short:'Lông',ic:'🖌️',var:true,taper:true,w:(p,d)=>Math.max(3,Math.min(32,22*(0.3+p*1.4)/(1+d*0.05))),color:['#0A0A0A','#F3F4F6'],sw:'<path d="M2 10C8 2 18 3 26 6S34 9 34 9C27 14 15 15 2 10Z" fill="#0A0A0A"/>'},
  {id:'chi',name:'Bút chì',short:'Chì',ic:'✏️',w:()=>3,alpha:.9,grain:true,color:['#5B6170','#C7CDD6'],sw:'<path d="M3 11C10 3 19 15 33 5" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="2.2 1.2"/>'},
+ {id:'td',name:'Bút nét thanh đậm',short:'Thanh đậm',ic:'🖋️',var:true,dir:true,w:(p,d,dn,ax)=>(1.4+12.5*Math.pow(Math.max(0,dn),0.85)+1.2*ax)*(0.7+p*0.6),color:['#3B2A7A','#C4B5FD'],sw:'<path d="M3 12C6 4 9 3 11 6L13 13C15 4 20 3 22 6L24 13C26 5 31 3 34 5" fill="none" stroke="#3B2A7A" stroke-width="1.2"/><path d="M10 5L13 13 15 13 12 5Z M21 5L24 13 26 13 23 5Z" fill="#3B2A7A"/>'},
  {id:'da',name:'Bút dạ',short:'Dạ',ic:'🖍️',w:()=>15,alpha:.88,cap:'butt',color:['#0E7490','#5EEAD4'],sw:'<path d="M4 10C11 4 20 13 32 6" fill="none" stroke="#0E7490" stroke-width="5" stroke-opacity=".88"/>'}];
 const WR_PEN={};WR_PENS.forEach(pn=>WR_PEN[pn.id]=pn);
 const WR_GRAIN={};
@@ -5559,10 +5643,10 @@ function wrPaint(ctx,list,forScore){ctx.lineJoin='round';const dk=WR&&WR.dark?1:
   if(!pen.var){ctx.beginPath();ctx.lineWidth=pen.w();ctx.moveTo(pts[0].x,pts[0].y);if(n<3)ctx.lineTo(pts[n-1].x+.01,pts[n-1].y+.01);else{for(let i=1;i<n-1;i++)ctx.quadraticCurveTo(pts[i].x,pts[i].y,(pts[i].x+pts[i+1].x)/2,(pts[i].y+pts[i+1].y)/2);ctx.lineTo(pts[n-1].x,pts[n-1].y)}ctx.stroke();continue}
   const tp=i=>pen.taper?Math.pow(Math.min(1,(i+1)/5,(n-i)/6),0.6):1;
   if(n<3){const a=pts[0],b=pts[n-1];ctx.beginPath();ctx.lineWidth=pen.w(a.p||.5,0);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x+.01,b.y+.01);ctx.stroke()}
-  else{for(let i=1;i<n-1;i++){const p0=pts[i-1],p1=pts[i],p2=pts[i+1];const d=Math.hypot(p1.x-p0.x,p1.y-p0.y);ctx.beginPath();ctx.lineWidth=Math.max(1,pen.w(p1.p||.5,d)*tp(i));ctx.moveTo((p0.x+p1.x)/2,(p0.y+p1.y)/2);ctx.quadraticCurveTo(p1.x,p1.y,(p1.x+p2.x)/2,(p1.y+p2.y)/2);ctx.stroke()}}}
+  else{for(let i=1;i<n-1;i++){const p0=pts[i-1],p1=pts[i],p2=pts[i+1];const d=Math.hypot(p1.x-p0.x,p1.y-p0.y);let dn=0,ax=0;if(pen.dir){const a=pts[Math.max(0,i-3)],b=pts[Math.min(n-1,i+3)],L=Math.hypot(b.x-a.x,b.y-a.y)||1;dn=(b.y-a.y)/L;ax=Math.abs(b.x-a.x)/L}ctx.beginPath();ctx.lineWidth=Math.max(1,pen.w(p1.p||.5,d,dn,ax)*tp(i));ctx.moveTo((p0.x+p1.x)/2,(p0.y+p1.y)/2);ctx.quadraticCurveTo(p1.x,p1.y,(p1.x+p2.x)/2,(p1.y+p2.y)/2);ctx.stroke()}}}
  ctx.globalAlpha=1}
 function wrRedraw(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;const ctx=cv.getContext('2d');const r=cv._res||WR.dpr||1;ctx.setTransform(r,0,0,r,0,0);ctx.clearRect(0,0,WR.cw,200);wrPaint(ctx,WR.strokes.filter(s=>s.ii===ii),false)}
-function wrScoreCalc(){const W=200,t=WR.items[WR.ii].ch;const mc=document.createElement('canvas');mc.width=W;mc.height=W;const mx=mc.getContext('2d');mx.fillStyle='#000';mx.font='900 148px '+LANGS[S.lang].font;mx.textAlign='center';mx.textBaseline='middle';mx.fillText(t,W/2,W/2+4);
+function wrScoreCalc(){const W=200,t=WR.items[WR.ii].ch;const mc=document.createElement('canvas');mc.width=W;mc.height=W;const mx=mc.getContext('2d');mx.fillStyle='#000';mx.font='900 148px '+LANGS[S.lang].font;mx.textAlign='center';mx.textBaseline='middle';const sk=WR.items[WR.ii].sk,sp=sk&&wrStrokeData(sk.c);if(sp&&sp[sk.i]){mx.setTransform(W/1024,0,0,-W/1024,0,900*W/1024);mx.fill(new Path2D(sp[sk.i]));mx.setTransform(1,0,0,1,0,0)}else mx.fillText(t,W/2,W/2+4);
  const ic=document.createElement('canvas');ic.width=W;ic.height=W;const ix=ic.getContext('2d');ix.save();ix.translate(-WR.cell*200,0);wrPaint(ix,WR.strokes.filter(s=>s.ii===WR.ii&&s.cell===WR.cell),true);ix.restore();
  const md=mx.getImageData(0,0,W,W).data,id=ix.getImageData(0,0,W,W).data;const step=2;let gT=0,gH=0,iT=0,iS=0;const gAt=(x,y)=>md[(y*W+x)*4+3]>40,iAt=(x,y)=>id[(y*W+x)*4+3]>40;
  for(let y=0;y<W;y+=step)for(let x=0;x<W;x+=step){const g=gAt(x,y),i=iAt(x,y);if(g){gT++;if(i)gH++}if(i){iT++;if(!g){let near=false;for(let dy=-6;dy<=6&&!near;dy+=2)for(let dx=-6;dx<=6&&!near;dx+=2){const nx=x+dx,ny=y+dy;if(nx>=0&&ny>=0&&nx<W&&ny<W&&gAt(nx,ny))near=true}if(!near)iS++}}}
@@ -5572,7 +5656,7 @@ function wrCheck(){if(!WR||WR.phase!=='write')return;if(!WR.strokes.some(s=>s.ii
  let grade,cls;if(r.score>=85){grade='Xuất sắc! 🏆';cls='ok'}else if(r.score>=65){grade='Rất giống mẫu! 🎉';cls='ok'}else if(r.score>=45){grade='Khá ổn, gần giống rồi 👍';cls='mid'}else if(r.score>=25){grade='Đang tiến bộ 💪';cls='mid'}else{grade='Viết chậm lại, bám sát mẫu nhé 🌱';cls='low'}
  if(r.score>=50)sfx('correct');else{sfx('wrong');if(navigator.vibrate)navigator.vibrate(60)}
  const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+cls+'"><div class="dr-score">'+r.score+'<small>%</small></div><div class="dr-rtext"><b>'+grade+'</b> · +'+r.score+' điểm</div></div>';
- wrChipsRender();wrRowDotsRender();wrHudRender();wrCtlRender();wrSgRender()}
+ wrChipsRender();wrRowDotsRender();wrHudRender();wrCtlRender();wrSgRender();wrSaveSession()}
 function wrAdvance(){if(!WR)return;
  if(WR.cell<WR_CELLS-1){WR.cell++;wrSetCell();sfx('pop');return}
  const row=WR.scores[WR.ii].slice(1);const rowAvg=Math.round(row.reduce((a,b)=>a+(b||0),0)/row.length);const it=WR.items[WR.ii];const mem=WR.guideOp<=2;let xp=2+Math.round(rowAvg/100*4);if(mem)xp=Math.round(xp*1.5);WR.charsDone++;addXP(xp,'Luyện viết chữ: '+it.ch+' ('+rowAvg+'%)');if(rowAvg>=65){sfx('win');confetti(innerWidth/2,innerHeight/3,18)}else if(rowAvg>=40)sfx('correct');else sfx('flip');
@@ -5583,7 +5667,7 @@ function wrSkip(){if(!WR||WR.phase!=='write')return;WR.scores[WR.ii][WR.cell]=0;
 function wrUndo(byTap){if(!WR||WR.phase!=='write')return;for(let i=WR.strokes.length-1;i>=0;i--){if(WR.strokes[i].ii===WR.ii&&WR.strokes[i].cell===WR.cell){WR.strokes.splice(i,1);sfx('flip');wrRedraw(WR.ii);wrSgRender();if(byTap)toast('↩️ Đã hoàn tác nét vừa viết');return}}if(byTap)wrSgRender();toast('Chưa có nét nào để hoàn tác')}
 function wrClear(){if(!WR||WR.phase!=='write')return;const before=WR.strokes.length;WR.strokes=WR.strokes.filter(s=>!(s.ii===WR.ii&&s.cell===WR.cell));if(WR.strokes.length===before){toast('Ô này đang trống');return}sfx('flip');wrRedraw(WR.ii);wrSgRender();toast('Đã xóa ô — viết lại nhé')}
 function wrRedoChar(){if(!WR||WR.phase!=='checked')return;WR.points-=WR.scores[WR.ii][WR.cell]||0;if(WR.cellsDone>0)WR.cellsDone--;WR.scores[WR.ii][WR.cell]=null;WR.strokes=WR.strokes.filter(s=>!(s.ii===WR.ii&&s.cell===WR.cell));wrSetCell();wrRedraw(WR.ii);wrHudRender();sfx('flip')}
-function wrEnd(){if(!WR)return;WR.phase='end';const area=document.getElementById('gameArea');const avg=WR.cellsDone?Math.round(WR.points/WR.cellsDone):0;
+function wrEnd(){if(!WR)return;WR.phase='end';wrClearSession();setTimeout(saveState,0);const area=document.getElementById('gameArea');const avg=WR.cellsDone?Math.round(WR.points/WR.cellsDone):0;
  let head='',btns='';
  if(WR.lesson!=null&&WR.lesson>=0){const key=wrKey(WR.lesson);if(WR.charsDone>=WR.items.length){S.wrDone.add(key);if(S.wrBest[key]==null||avg>S.wrBest[key])S.wrBest[key]=avg}
   const L=wrLessons()[WR.lesson];head='<p style="color:#0AA8A0;font-weight:800;margin:4px 0 0">'+(L?wrLessonName(L):'')+' ✓<br><span style="color:var(--muted);font-weight:700">Đã xong '+wrDoneCount()+'/'+wrLessons().length+' bài viết của '+LANGS[S.lang].name+'</span></p>';
@@ -5642,6 +5726,8 @@ document.addEventListener('click',function(e){const el=e.target&&e.target.closes
  else if(a==='write-full')wrToggleFull();
  else if(a==='write-zoom')wrZoomStep(+el.dataset.d);
  else if(a==='write-pen')wrSetPen(el.dataset.pen);
+ else if(a==='write-restart')wrRestart();
+ else if(a==='py-say')speak(el.dataset.t);
  else if(a==='draw-hear'){if(DR)speak(drTargetText())}
  else if(a==='draw-color'){if(DR){DR.color=el.dataset.c;if(DR.tool==='erase')drSetBrush('pencil');const cc=document.getElementById('drCustomColor');if(cc)cc.value=el.dataset.c;sfx('click');document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s===el))}}
  else if(a==='draw-undo')drUndo();

@@ -40,3 +40,7 @@ Nguồn và giấy phép: xem `assets/strokes/NGUON-DU-LIEU.md`.
 ## Giáo trình tập viết tiếng Trung
 Phần Luyện viết → tiếng Trung có 15 bài Giáo trình Hán ngữ Q1 + 50 bộ thủ (dữ liệu trong `index.html`, tìm `WR_COURSE`).
 Mỗi bài có bảng chữ (phiên âm, Hán Việt, nghĩa, cấu tạo) và vở tập viết từng chữ.
+
+## Lưu tiến độ
+Tiến độ (XP, chuỗi ngày, bài đã xong, điểm cao nhất, bài đang viết dở) lưu trong trình duyệt của từng máy (localStorage).
+Xoá dữ liệu Safari / gỡ app khỏi màn hình chính là mất tiến độ. Mỗi máy có tiến độ riêng, không đồng bộ giữa các máy.
