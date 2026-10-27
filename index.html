@@ -314,16 +314,16 @@ body:has(.wr-full) .view.active{transform:none!important;animation:none!importan
 .wr-full h3{margin:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wr-topbtns #wrProg{margin-left:auto;align-self:center}
 .draw-wrap.wr-full{overflow-y:auto}
-.wr-full .wr-item{display:none}
-.wr-full .wr-item.cur,.wr-full .wr-item.after{display:block}
-.wr-full .wr-item.after{margin-top:12px}
+
+.wr-full .wr-item{display:block}
+.wr-full .wr-item+.wr-item{margin-top:12px}
 .wr-full #wrWordBox > div:first-child{margin-top:2px}
 .wr-full #wrWordBox > div:first-child > span:first-child{font-size:30px!important}
 .wr-full .wr-chips{margin:6px 0 0}
 .wr-full .wr-chip{font-size:34px;min-width:58px;min-height:64px}
 /* the page fills the free height: current row on top, upcoming rows below it like a real notebook page */
 .wr-full .wr-page{flex:1 1 0!important;min-height:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin-top:8px;padding:8px 12px 10px 34px}
-.wr-full .wr-item.after .wr-line,.wr-full .wr-item.after .wr-canvas{touch-action:pan-x pan-y;cursor:default}
+
 .wr-full .wr-sg,.wr-full .wr2-nstrokes{display:none}
 .wr-zoom{display:none}
 .wr-full .wr-zoom{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
@@ -5437,10 +5437,10 @@ function wrPinyinPage(i){markGame();goTab('games');const area=document.getElemen
 const WR_SAVE='hnnWR1';
 function wrSaved(){try{return JSON.parse(localStorage.getItem(WR_SAVE)||'null')}catch(e){return null}}
 function wrSaveSession(){if(!WR||WR.lesson==null||WR.lesson<0||WR.phase==='end'||(!WR.cellsDone&&!WR.strokes.length))return;const st=WR.strokes.filter(s=>s!==WR.cur).map(s=>[s.ii,s.cell,s.pen||'muc',s.pts.flatMap(q=>[Math.round(q.x),Math.round(q.y),Math.round((q.p||.5)*100)])]);
- try{localStorage.setItem(WR_SAVE,JSON.stringify({key:wrKey(WR.lesson),ii:WR.ii,cell:WR.cell,scores:WR.scores,points:WR.points,cellsDone:WR.cellsDone,charsDone:WR.charsDone,n:WR.items.length,st:st}))}catch(e){try{localStorage.removeItem(WR_SAVE)}catch(_){}}}
+ try{localStorage.setItem(WR_SAVE,JSON.stringify({key:wrKey(WR.lesson),ii:WR.ii,cell:WR.cell,scores:WR.scores,points:WR.points,cellsDone:WR.cellsDone,charsDone:WR.charsDone,rowDone:WR.rowDone||[],n:WR.items.length,st:st}))}catch(e){try{localStorage.removeItem(WR_SAVE)}catch(_){}}}
 function wrClearSession(){try{localStorage.removeItem(WR_SAVE)}catch(e){}}
 function wrRestoreSession(i){const d=wrSaved();if(!d||d.key!==wrKey(i)||!WR||d.n!==WR.items.length)return;
- Object.assign(WR,{ii:d.ii,cell:d.cell,scores:d.scores,points:d.points,cellsDone:d.cellsDone,charsDone:d.charsDone});
+ Object.assign(WR,{ii:d.ii,cell:d.cell,scores:d.scores,points:d.points,cellsDone:d.cellsDone,charsDone:d.charsDone});WR.rowDone=d.rowDone||WR.items.map((_,k)=>wrRowFull(k));
  WR.strokes=(d.st||[]).map(s=>{const pts=[];for(let k=0;k<s[3].length;k+=3)pts.push({x:s[3][k],y:s[3][k+1],p:s[3][k+2]/100});return{ii:s[0],cell:s[1],pen:s[2],pts:pts}});
  WR.items.forEach((_,ii)=>wrRedraw(ii));wrSetCell();
  if(WR.scores[WR.ii][WR.cell]!=null){WR.phase='checked';wrGuideApply();wrCtlRender()}
@@ -5497,7 +5497,7 @@ function wrBeginSession(deck,lessonIdx){markGame();goTab('games');const area=doc
  +'<div id="wrFb"></div>'
  +'<div class="draw-tools wr-sliders"><span class="dr-lab">Mẫu mờ</span><input type="range" id="wrGuideRange" min="0" max="45" value="'+WR.guideOp+'" aria-label="Độ mờ chữ mẫu"><span class="dr-lab" id="wrGuideVal">'+WR.guideOp+'%</span><span class="wr-zoom"><span class="dr-lab">Cỡ ô</span><button class="btn small secondary" data-action="write-zoom" data-d="-1" aria-label="Thu nhỏ ô">−</button><button class="btn small secondary" data-action="write-zoom" data-d="1" aria-label="Phóng to ô">+</button></span></div>'
  +'<p class="dr-hint wr-credit">Thứ tự nét: KanjiVG (CC BY-SA 3.0, Ulrich Apel) · Make Me a Hanzi / Hanzi Writer (Arphic Public License).</p></div>';
- wrBuildPage();wrStickyTop();wrLoadStrokes();setTimeout(wrFitGuide,90);area.scrollIntoView({behavior:'smooth',block:'start'})}
+ wrBuildPage();wrStickyTop();wrLoadStrokes();try{if(!localStorage.getItem('wrTipFree')){localStorage.setItem('wrTipFree','1');setTimeout(()=>toast('✍️ Chạm ô nào cũng viết được · vuốt 2 ngón để cuộn'),600)}}catch(e){}setTimeout(wrFitGuide,90);area.scrollIntoView({behavior:'smooth',block:'start'})}
 /* STROKE ORDER GUIDE: real stroke-by-stroke steps. Chinese = Hanzi Writer
    outlines (1024 box, y-up), Japanese = KanjiVG centre lines (109 box), both
    bundled in assets/strokes/<lang>.json. Each step draws the strokes so far
@@ -5549,8 +5549,20 @@ function wrCurWord(){return WR.deck[WR.items[WR.ii].wi]}
 function wrWordRender(){const box=document.getElementById('wrWordBox');if(!box||!WR)return;const w=wrCurWord();box.innerHTML='<div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:8px"><span style="font-size:24px;font-weight:900;font-family:'+LANGS[S.lang].font+'">'+wrEsc(w.f)+'</span><button class="speak" data-action="write-hear" aria-label="Nghe phát âm từ">🔊</button><span style="font-size:15px;font-weight:700;color:var(--muted)">'+(w.p?wrEsc(w.p)+' · ':'')+wrEsc(w.m)+'</span></div><div class="wr-chips" id="wrChips"></div><div class="wr-rowdots" id="wrRowDots"></div>';wrChipsRender();wrRowDotsRender();const pr=document.getElementById('wrProg');if(pr)pr.innerHTML='<span class="wr-sm-hide">Ký tự </span>'+(WR.ii+1)+'/'+WR.items.length+' • Ô '+WR.cell+'/'+(WR_CELLS-1)}
 function wrRowDotsRender(){const d=document.getElementById('wrRowDots');if(!d||!WR)return;let h='<span class="wr-rdlab">Ô</span>';for(let c=1;c<WR_CELLS;c++){const sc=WR.scores[WR.ii][c];const done=sc!=null;h+='<span class="wr-rdot'+(done?' done':c===WR.cell?' cur':'')+'">'+(done?'✓':c)+'</span>'}d.innerHTML=h}
 function wrChipsRender(){const c=document.getElementById('wrChips');if(!c||!WR)return;const wi=WR.items[WR.ii].wi;c.innerHTML=WR.items.map((it,ii)=>({it:it,ii:ii})).filter(o=>o.it.wi===wi).map(o=>{const row=WR.scores[o.ii];const done=row.slice(1).every(s=>s!=null);let cls='',lab=o.it.syl||String(o.it.ci+1);if(done){const avg=Math.round(row.slice(1).reduce((a,b)=>a+b,0)/(WR_CELLS-1));cls=avg>=65?'ok':avg>=40?'mid':'low';lab=avg+'%'}else if(o.ii===WR.ii)cls='cur';return '<div class="wr-chip '+cls+'"><span style="font-family:'+LANGS[S.lang].font+'">'+(o.it.sk?wrSkSvg(o.it.sk,'chip'):wrEsc(o.it.ch))+'</span><small>'+lab+'</small></div>'}).join('')}
+function wrMarkRows(){WR.items.forEach((_,ii)=>{const row=document.getElementById('wrItem'+ii);if(row){row.classList.toggle('cur',ii===WR.ii);row.classList.toggle('after',ii>WR.ii)}const hl=document.getElementById('wrHl'+ii);if(hl){if(ii===WR.ii){hl.style.display='block';hl.style.left=(WR.cell*100/WR_CELLS)+'%';hl.style.width=(100/WR_CELLS)+'%'}else hl.style.display='none'}})}
+/* Free writing: tapping any cell (1–9) of any row makes it the active cell —
+   no forced order. A scored cell opens in "checked" state (Viết lại ô). */
+function wrSelectCell(ii,c){if(!WR||(ii===WR.ii&&c===WR.cell))return;const rowChanged=ii!==WR.ii;WR.ii=ii;WR.cell=c;WR.cur=null;WR.phase=WR.scores[ii][c]!=null?'checked':'write';
+ wrMarkRows();wrGuideApply();const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='';wrWordRender();wrHudRender();wrCtlRender();if(rowChanged){wrResCanvases();wrFitGuide()}}
+function wrRowFull(ii){return WR.scores[ii].slice(1).every(s=>s!=null)}
+function wrAllDone(){return WR.items.every((_,ii)=>wrRowFull(ii))}
+function wrNextCell(){const n=WR.items.length;for(let k=0;k<=n;k++){const ii=(WR.ii+k)%n;for(let c=1;c<WR_CELLS;c++){if(k===0&&c<=WR.cell)continue;if(WR.scores[ii][c]==null)return{ii:ii,c:c}}}for(let c=1;c<=WR.cell;c++)if(WR.scores[WR.ii][c]==null)return{ii:WR.ii,c:c};return null}
+/* a row is finished as soon as its 9 practice cells all have a score, in any order */
+function wrRowMaybeDone(ii){if(!WR.rowDone)WR.rowDone=[];if(WR.rowDone[ii]||!wrRowFull(ii))return null;WR.rowDone[ii]=true;
+ const row=WR.scores[ii].slice(1),avg=Math.round(row.reduce((a,b)=>a+(b||0),0)/row.length),it=WR.items[ii],mem=WR.guideOp<=2;let xp=2+Math.round(avg/100*4);if(mem)xp=Math.round(xp*1.5);
+ WR.charsDone++;addXP(xp,'Luyện viết chữ: '+it.ch+' ('+avg+'%)');if(avg>=65){sfx('win');confetti(innerWidth/2,innerHeight/3,18)}return{avg:avg,xp:xp,ch:it.ch}}
 function wrSetCell(){if(!WR)return;WR.cur=null;WR.phase='write';setTimeout(wrSaveSession,0);
- WR.items.forEach((_,ii)=>{const row=document.getElementById('wrItem'+ii);if(row){row.classList.toggle('cur',ii===WR.ii);row.classList.toggle('after',ii>WR.ii)}const hl=document.getElementById('wrHl'+ii);if(hl){if(ii===WR.ii){hl.style.display='block';hl.style.left=(WR.cell*100/WR_CELLS)+'%';hl.style.width=(100/WR_CELLS)+'%'}else hl.style.display='none'}});
+ wrMarkRows();
  wrGuideApply();wrFitGuide();const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='';wrWordRender();wrHudRender();wrSgRender();wrCtlRender();
  if(wrIsFull()){wrFullLayout();return}
  wrResCanvases();
@@ -5573,7 +5585,8 @@ function wrZoomStep(d){const i0=wrZoomIdx(),i=Math.max(0,Math.min(WR_ZOOMS.lengt
 function wrFullLayout(){if(!WR||!wrIsFull())return;const wrap=document.getElementById('wrWrap'),page=wrap.querySelector('.wr-page'),sc=document.getElementById('wrScroll'+WR.ii);if(!page||!sc)return;
  const sw=sc.clientWidth,H=wrap.clientHeight,base=sw<520?sw/2.6:Math.min(wrap.clientWidth,H)*0.2;
  const cell=Math.max(Math.floor(sw/WR_CELLS),Math.round(Math.min(base*WR_ZOOMS[wrZoomIdx()],H*0.5,sw*0.95,560)));
- wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();page.scrollTop=0;
+ wrap.style.setProperty('--wr-cell',cell+'px');wrFitGuide();wrResCanvases();
+ const itm=document.getElementById('wrItem'+WR.ii);if(itm){const top=itm.offsetTop-8,bot=itm.offsetTop+itm.offsetHeight;if(top<page.scrollTop||bot>page.scrollTop+page.clientHeight)page.scrollTop=Math.max(0,top)}
  sc.scrollLeft=Math.max(0,WR.cell*cell-Math.min(cell,sw-cell))}
 function wrToggleFull(){const wrap=document.getElementById('wrWrap');if(!wrap||!WR)return;const on=!wrap.classList.contains('wr-full');wrap.classList.toggle('wr-full',on);try{localStorage.setItem('wrFull',on?'1':'0')}catch(e){}
  const b=document.getElementById('wrFullBtn');if(b)b.textContent=on?'↙️ Thu nhỏ':'↗️ Toàn màn hình';
@@ -5595,17 +5608,21 @@ function wrSgRender(){const el=document.getElementById('wrSg');if(!el||!WR)retur
  el.innerHTML=tag+'✍️ Ký tự <b style="font-family:'+fnt+'">'+wrEsc(it.ch)+'</b> cần <b>'+target+' nét</b> — đã viết <b>'+drawn+'</b>'+(remain>0?' · <span class="sg-remain">còn '+remain+' nét nữa</span>':' · <span>đủ nét rồi — bấm ✔️ Kiểm tra nét 🎉</span>')+(drawn>target?' (thừa '+(drawn-target)+' nét)':'')+' <span class="sg-dots" aria-hidden="true">'+dots+'</span>'}
 function wrCtlRender(){const c=document.getElementById('wrCtl');if(!c||!WR)return;
  if(WR.phase==='write'){c.innerHTML='<button class="btn small secondary" data-action="write-undo">↩️ Hoàn tác</button><button class="btn small secondary" data-action="write-clear">🧹 Xóa ô</button><button class="btn small secondary" data-action="write-skip">Bỏ qua ô ›</button><span style="flex:1"></span><button class="btn small" data-action="write-check">✔️ Kiểm tra nét</button>'}
- else if(WR.phase==='checked'){const lastCell=WR.cell>=WR_CELLS-1,lastItem=WR.ii>=WR.items.length-1;c.innerHTML='<button class="btn small secondary" data-action="write-redo-char">✍️ Viết lại ô</button><span style="flex:1"></span><button class="btn small" data-action="write-next">'+(lastCell?(lastItem?'Xong bài ✓':'Hàng chữ tiếp ›'):'Ô tiếp ›')+'</button>'}
+ else if(WR.phase==='checked'){const fin=wrAllDone();c.innerHTML='<button class="btn small secondary" data-action="write-redo-char">✍️ Viết lại ô</button><span style="flex:1"></span><button class="btn small" data-action="write-next">'+(fin?'Xong bài ✓':'Ô tiếp ›')+'</button>'}
  else c.innerHTML=''}
 function wrInitCanvas(ii){const cv=document.getElementById('wrCanvas'+ii);if(!cv||!WR)return;WR.dpr=Math.min(2,window.devicePixelRatio||1);const r0=ii===WR.ii?WR.dpr:1;cv.width=WR.cw*r0;cv.height=200*r0;cv._res=r0;
  if(!window._wrFitBound){window._wrFitBound=true;window.addEventListener('resize',()=>{wrStickyTop();if(wrIsFull())wrFullLayout();else wrFitGuide()})}
  function pos(e){const rc=cv.getBoundingClientRect();return{x:(e.clientX-rc.left)/rc.width*WR.cw,y:(e.clientY-rc.top)/rc.height*200,p:e.pressure&&e.pressure>0?e.pressure:.5}}
- cv.onpointerdown=e=>{if(!WR)return;wrTapDown(e);if(ii!==WR.ii)return;
-  if(wrIsFull()&&(WR.phase!=='write'||Math.floor(pos(e).x/200)!==WR.cell)){wrPanStart(e,cv,ii);return}
-  if(WR.phase!=='write')return;e.preventDefault();if(e.pointerType==='pen')WR.pen=true;if((WR.pen&&e.pointerType==='touch')||WR.cur)return;try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.cur={ii:ii,cell:WR.cell,pid:e.pointerId,pen:WR.penType,pts:[pos(e)]};WR.strokes.push(WR.cur);wrRedraw(ii);sfx('draw')};
- cv.onpointermove=e=>{if(WR&&WR.pan&&WR.pan.pid===e.pointerId){e.preventDefault();const P=WR.pan;P.sc.scrollLeft=P.sl-(e.clientX-P.x);P.page.scrollTop=P.st-(e.clientY-P.y);return}
+ cv.onpointerdown=e=>{if(!WR)return;wrTapDown(e);
+  if(e.pointerType==='touch'&&wrTouchDown(e,ii))return;
+  const c=Math.floor(pos(e).x/200);
+  if(c<1){if(wrIsFull())wrPanStart(e,cv,ii);return}
+  if(e.pointerType==='pen')WR.pen=true;if((WR.pen&&e.pointerType==='touch')||WR.cur||WR.pan2)return;
+  if(ii!==WR.ii||c!==WR.cell)wrSelectCell(ii,c);
+  if(WR.phase!=='write')return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.cur={ii:ii,cell:WR.cell,pid:e.pointerId,pen:WR.penType,pts:[pos(e)]};WR.strokes.push(WR.cur);wrRedraw(ii);sfx('draw')};
+ cv.onpointermove=e=>{if(WR&&e.pointerType==='touch'&&wrTouchMove(e))return;if(WR&&WR.pan&&WR.pan.pid===e.pointerId){e.preventDefault();const P=WR.pan;P.sc.scrollLeft=P.sl-(e.clientX-P.x);P.page.scrollTop=P.st-(e.clientY-P.y);return}
   if(!WR||!WR.cur||WR.cur.ii!==ii||e.pointerId!==WR.cur.pid)return;e.preventDefault();let evs=e.getCoalescedEvents?e.getCoalescedEvents():[];if(!evs||!evs.length)evs=[e];evs.forEach(ev=>WR.cur.pts.push(pos(ev)));wrRedraw(ii)};
- const end=e=>{let st=null;if(WR&&WR.pan&&WR.pan.pid===e.pointerId)WR.pan=null;else if(WR&&WR.cur&&WR.cur.ii===ii&&e.pointerId===WR.cur.pid){st=WR.cur;WR.cur=null;wrSgRender()}if(WR){if(e.type==='pointerup')wrTapUp(e,st);else WR.tap=null}};cv.onpointerup=end;cv.onpointercancel=end;wrRedraw(ii)}
+ const end=e=>{let st=null;if(WR&&e.pointerType==='touch'&&wrTouchUp(e))return;if(WR&&WR.pan&&WR.pan.pid===e.pointerId)WR.pan=null;else if(WR&&WR.cur&&WR.cur.ii===ii&&e.pointerId===WR.cur.pid){st=WR.cur;WR.cur=null;wrSgRender()}if(WR){if(e.type==='pointerup')wrTapUp(e,st);else WR.tap=null}};cv.onpointerup=end;cv.onpointercancel=end;wrRedraw(ii)}
 /* Double tap anywhere on the notebook = undo the last stroke. A tap is short
    (<250ms) and still (<10px); the dots the two taps may have left are removed
    too. Works with a finger even while the Pencil is in use (palm rejection
@@ -5617,6 +5634,19 @@ function wrTapUp(e,st){const T=WR.tap;WR.tap=null;if(!T||T.pid!==e.pointerId)ret
 /* Full-screen: dragging on the active row outside the cell being written
    slides the row sideways (and the page up/down). With an Apple Pencil in
    use, finger touches are treated as a resting palm and ignored. */
+/* Two fingers on the notebook scroll it (page up/down; the row sideways in
+   full-screen). A stroke the first finger had just begun is dropped. Not
+   started while the Pencil is writing, so a resting palm can't scroll. */
+const WR_T=new Map();
+function wrT2c(){const v=[...WR_T.values()].slice(0,2);return{x:(v[0].x+v[1].x)/2,y:(v[0].y+v[1].y)/2}}
+function wrTouchDown(e,ii){WR_T.set(e.pointerId,{x:e.clientX,y:e.clientY});if(WR_T.size<2||WR.pan2)return !!WR.pan2;
+ if(WR.cur&&!WR_T.has(WR.cur.pid))return false;
+ if(WR.cur){const k=WR.strokes.indexOf(WR.cur);if(k>=0&&WR.cur.pts.length<14)WR.strokes.splice(k,1);const r=WR.cur.ii;WR.cur=null;wrRedraw(r)}
+ const full=wrIsFull(),page=full?document.querySelector('#wrWrap .wr-page'):null,sc=full?document.getElementById('wrScroll'+ii):null;
+ WR.pan2={c:wrT2c(),st:page?page.scrollTop:window.scrollY,sl:sc?sc.scrollLeft:0,page:page,sc:sc};WR.tap=null;WR.lastTap=null;e.preventDefault();return true}
+function wrTouchMove(e){if(!WR_T.has(e.pointerId))return false;WR_T.set(e.pointerId,{x:e.clientX,y:e.clientY});const P=WR.pan2;if(!P)return false;e.preventDefault();
+ if(WR_T.size>=2){const c=wrT2c();const dy=c.y-P.c.y,dx=c.x-P.c.x;if(P.page)P.page.scrollTop=P.st-dy;else window.scrollTo({top:P.st-dy,behavior:'instant'});if(P.sc)P.sc.scrollLeft=P.sl-dx}return true}
+function wrTouchUp(e){WR_T.delete(e.pointerId);if(WR.pan2){if(!WR_T.size)WR.pan2=null;WR.tap=null;return true}return false}
 function wrPanStart(e,cv,ii){if(WR.pan||WR.cur)return;if(e.pointerType==='pen')WR.pen=true;if(WR.pen&&e.pointerType==='touch')return;e.preventDefault();
  const sc=document.getElementById('wrScroll'+ii),page=document.querySelector('#wrWrap .wr-page');if(!sc||!page)return;
  try{cv.setPointerCapture(e.pointerId)}catch(err){}WR.pan={pid:e.pointerId,x:e.clientX,y:e.clientY,sl:sc.scrollLeft,st:page.scrollTop,sc:sc,page:page}}
@@ -5669,15 +5699,11 @@ function wrCheck(){if(!WR||WR.phase!=='write')return;if(!WR.strokes.some(s=>s.ii
  const r=wrScoreCalc();WR.scores[WR.ii][WR.cell]=r.score;WR.points+=r.score;WR.cellsDone++;WR.phase='checked';wrGuideApply();
  let grade,cls;if(r.score>=85){grade='Xuất sắc! 🏆';cls='ok'}else if(r.score>=65){grade='Rất giống mẫu! 🎉';cls='ok'}else if(r.score>=45){grade='Khá ổn, gần giống rồi 👍';cls='mid'}else if(r.score>=25){grade='Đang tiến bộ 💪';cls='mid'}else{grade='Viết chậm lại, bám sát mẫu nhé 🌱';cls='low'}
  if(r.score>=50)sfx('correct');else{sfx('wrong');if(navigator.vibrate)navigator.vibrate(60)}
- const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+cls+'"><div class="dr-score">'+r.score+'<small>%</small></div><div class="dr-rtext"><b>'+grade+'</b> · +'+r.score+' điểm</div></div>';
+ const rd=wrRowMaybeDone(WR.ii);
+ const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+cls+'"><div class="dr-score">'+r.score+'<small>%</small></div><div class="dr-rtext"><b>'+grade+'</b> · +'+r.score+' điểm'+(rd?'<br>✅ Xong hàng “'+wrEsc(rd.ch)+'” · +'+rd.xp+' XP':'')+'</div></div>';
  wrChipsRender();wrRowDotsRender();wrHudRender();wrCtlRender();wrSgRender();wrSaveSession()}
-function wrAdvance(){if(!WR)return;
- if(WR.cell<WR_CELLS-1){WR.cell++;wrSetCell();sfx('pop');return}
- const row=WR.scores[WR.ii].slice(1);const rowAvg=Math.round(row.reduce((a,b)=>a+(b||0),0)/row.length);const it=WR.items[WR.ii];const mem=WR.guideOp<=2;let xp=2+Math.round(rowAvg/100*4);if(mem)xp=Math.round(xp*1.5);WR.charsDone++;addXP(xp,'Luyện viết chữ: '+it.ch+' ('+rowAvg+'%)');if(rowAvg>=65){sfx('win');confetti(innerWidth/2,innerHeight/3,18)}else if(rowAvg>=40)sfx('correct');else sfx('flip');
- if(WR.ii>=WR.items.length-1){wrEnd();return}
- WR.ii++;WR.cell=1;wrSetCell();
- const fb=document.getElementById('wrFb');if(fb)fb.innerHTML='<div class="dr-result '+(rowAvg>=65?'ok':rowAvg>=40?'mid':'low')+'"><div class="dr-score">'+rowAvg+'<small>%</small></div><div class="dr-rtext"><b>Xong hàng chữ “'+wrEsc(it.ch)+'”!</b> +'+xp+' XP'+(mem?' · 🧠 tắt mẫu tô ×1.5':'')+'</div></div>'}
-function wrSkip(){if(!WR||WR.phase!=='write')return;WR.scores[WR.ii][WR.cell]=0;WR.cellsDone++;sfx('flip');wrAdvance()}
+function wrAdvance(){if(!WR)return;if(wrAllDone()){wrEnd();return}const nx=wrNextCell();if(!nx){wrEnd();return}WR.ii=nx.ii;WR.cell=nx.c;wrSetCell();sfx('pop')}
+function wrSkip(){if(!WR||WR.phase!=='write')return;WR.scores[WR.ii][WR.cell]=0;WR.cellsDone++;sfx('flip');wrRowMaybeDone(WR.ii);wrAdvance()}
 function wrUndo(byTap){if(!WR||WR.phase!=='write')return;for(let i=WR.strokes.length-1;i>=0;i--){if(WR.strokes[i].ii===WR.ii&&WR.strokes[i].cell===WR.cell){WR.strokes.splice(i,1);sfx('flip');wrRedraw(WR.ii);wrSgRender();if(byTap)toast('↩️ Đã hoàn tác nét vừa viết');return}}if(byTap)wrSgRender();toast('Chưa có nét nào để hoàn tác')}
 function wrClear(){if(!WR||WR.phase!=='write')return;const before=WR.strokes.length;WR.strokes=WR.strokes.filter(s=>!(s.ii===WR.ii&&s.cell===WR.cell));if(WR.strokes.length===before){toast('Ô này đang trống');return}sfx('flip');wrRedraw(WR.ii);wrSgRender();toast('Đã xóa ô — viết lại nhé')}
 function wrRedoChar(){if(!WR||WR.phase!=='checked')return;WR.points-=WR.scores[WR.ii][WR.cell]||0;if(WR.cellsDone>0)WR.cellsDone--;WR.scores[WR.ii][WR.cell]=null;WR.strokes=WR.strokes.filter(s=>!(s.ii===WR.ii&&s.cell===WR.cell));wrSetCell();wrRedraw(WR.ii);wrHudRender();sfx('flip')}
